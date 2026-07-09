@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="Theme.Portfolio360" parent="Theme.Material3.DayNight.NoActionBar">
+        <item name="colorPrimary">@color/blueprint_primary</item>
+        <item name="colorSecondary">@color/blueprint_accent</item>
+        <item name="android:windowBackground">@color/blueprint_bg</item>
+        <item name="colorOnBackground">@color/blueprint_text</item>
+    </style>
+</resources>
