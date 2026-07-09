@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="blueprint_bg">#0E1420</color>
+    <color name="blueprint_surface">#161F30</color>
+    <color name="blueprint_primary">#5C9BD8</color>
+    <color name="blueprint_accent">#7FB3E0</color>
+    <color name="blueprint_text">#E7ECF5</color>
+    <color name="blueprint_grid_line">#2A3550</color>
+</resources>
