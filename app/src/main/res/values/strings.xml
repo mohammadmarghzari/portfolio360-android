@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Portfolio360</string>
+
+    <string name="tab_greeks">آپشن پایه</string>
+    <string name="tab_covered_call">کاوردکال</string>
+    <string name="tab_protective_put">پروتکتیو پوت</string>
+    <string name="tab_iron_condor">آیرون کاندور</string>
+    <string name="tab_rolling_cc">رولینگ CC</string>
+    <string name="tab_black_litterman">بلک-لیترمن</string>
+    <string name="tab_monte_carlo">مونت کارلو</string>
+    <string name="tab_rebalancing">ریبالانسینگ</string>
+    <string name="tab_benchmark">بنچمارک</string>
+
+    <string name="placeholder_text">این بخش (%1$s) هنوز پیاده‌سازی نشده — اسکلت اولیه است.</string>
+</resources>
