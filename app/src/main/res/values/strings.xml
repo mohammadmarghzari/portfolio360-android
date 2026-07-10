@@ -42,4 +42,13 @@
     <string name="result_if_called_return">بازده در صورت اعمال: %1$s</string>
     <string name="result_annualized_return">بازده سالانه‌شده: %1$s</string>
     <string name="result_downside_protection">محافظت نزولی: %1$s</string>
+
+    <string name="pp_input_title">ورودی‌های پروتکتیو پوت</string>
+    <string name="label_put_strike">قیمت اعمال پوت (کف محافظت)</string>
+    <string name="label_premium_paid">پرمیوم پرداختی</string>
+
+    <string name="result_max_loss">حداکثر زیان تضمینی: %1$s</string>
+    <string name="result_protection_level">سطح محافظت (نسبت به بهای تمام‌شده): %1$s</string>
+    <string name="result_insurance_cost">هزینه بیمه: %1$s</string>
+    <string name="result_annualized_cost">هزینه بیمه سالانه‌شده: %1$s</string>
 </resources>
