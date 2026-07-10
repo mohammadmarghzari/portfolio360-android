@@ -13,4 +13,22 @@
     <string name="tab_benchmark">بنچمارک</string>
 
     <string name="placeholder_text">این بخش (%1$s) هنوز پیاده‌سازی نشده — اسکلت اولیه است.</string>
+
+    <string name="greeks_input_title">ورودی‌های محاسبه</string>
+    <string name="label_spot_price">قیمت لحظه‌ای دارایی</string>
+    <string name="label_strike">قیمت اعمال (Strike)</string>
+    <string name="label_days_to_expiry">روز تا سررسید</string>
+    <string name="label_volatility">نوسان ضمنی (٪ سالانه)</string>
+    <string name="label_risk_free_rate">نرخ بهره بدون ریسک (٪)</string>
+    <string name="btn_calculate">محاسبه</string>
+    <string name="results_title">نتایج</string>
+
+    <string name="result_call_price">قیمت کال: %1$s</string>
+    <string name="result_put_price">قیمت پوت: %1$s</string>
+    <string name="result_delta">دلتا (Delta): %1$s</string>
+    <string name="result_gamma">گاما (Gamma): %1$s</string>
+    <string name="result_theta">تتا (Theta، روزانه): %1$s</string>
+    <string name="result_vega">وگا (Vega، به ازای ۱٪): %1$s</string>
+    <string name="result_rho">رو (Rho، به ازای ۱٪): %1$s</string>
+    <string name="input_error">لطفاً همه فیلدها را با مقادیر معتبر پر کنید.</string>
 </resources>
