@@ -1,0 +1,157 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/blueprint_bg"
+    android:fillViewport="true">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="20dp">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/greeks_input_title"
+            android:textColor="@color/blueprint_primary"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:layout_marginBottom="12dp" />
+
+        <!-- قیمت دارایی پایه -->
+        <com.google.android.material.textfield.TextInputLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="@string/label_spot_price">
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/input_spot"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="numberDecimal"
+                android:text="3500" />
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <!-- قیمت اعمال -->
+        <com.google.android.material.textfield.TextInputLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:hint="@string/label_strike">
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/input_strike"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="numberDecimal"
+                android:text="3600" />
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <!-- روز تا سررسید -->
+        <com.google.android.material.textfield.TextInputLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:hint="@string/label_days_to_expiry">
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/input_days"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="number"
+                android:text="30" />
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <!-- نوسان ضمنی -->
+        <com.google.android.material.textfield.TextInputLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:hint="@string/label_volatility">
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/input_volatility"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="numberDecimal"
+                android:text="60" />
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <!-- نرخ بهره بدون ریسک -->
+        <com.google.android.material.textfield.TextInputLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:hint="@string/label_risk_free_rate">
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/input_rate"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="numberDecimal"
+                android:text="5" />
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_calculate"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="18dp"
+            android:text="@string/btn_calculate"
+            app:backgroundTint="@color/blueprint_primary" />
+
+        <!-- نتایج -->
+        <androidx.cardview.widget.CardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            app:cardBackgroundColor="@color/blueprint_surface"
+            app:cardCornerRadius="10dp"
+            app:cardElevation="0dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="16dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/results_title"
+                    android:textColor="@color/blueprint_primary"
+                    android:textSize="16sp"
+                    android:textStyle="bold"
+                    android:layout_marginBottom="10dp" />
+
+                <TextView
+                    android:id="@+id/result_call_price"
+                    style="@style/ResultRow" />
+
+                <TextView
+                    android:id="@+id/result_put_price"
+                    style="@style/ResultRow" />
+
+                <TextView
+                    android:id="@+id/result_delta"
+                    style="@style/ResultRow" />
+
+                <TextView
+                    android:id="@+id/result_gamma"
+                    style="@style/ResultRow" />
+
+                <TextView
+                    android:id="@+id/result_theta"
+                    style="@style/ResultRow" />
+
+                <TextView
+                    android:id="@+id/result_vega"
+                    style="@style/ResultRow" />
+
+                <TextView
+                    android:id="@+id/result_rho"
+                    style="@style/ResultRow" />
+
+            </LinearLayout>
+        </androidx.cardview.widget.CardView>
+
+    </LinearLayout>
+</ScrollView>
