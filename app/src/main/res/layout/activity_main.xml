@@ -17,19 +17,10 @@
             android:title="@string/app_name"
             app:titleTextColor="@color/blueprint_text" />
 
-        <com.google.android.material.tabs.TabLayout
-            android:id="@+id/tab_layout"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            app:tabMode="scrollable"
-            app:tabTextColor="@color/blueprint_text"
-            app:tabSelectedTextColor="@color/blueprint_primary"
-            app:tabIndicatorColor="@color/blueprint_accent" />
-
     </com.google.android.material.appbar.AppBarLayout>
 
-    <androidx.viewpager2.widget.ViewPager2
-        android:id="@+id/view_pager"
+    <FrameLayout
+        android:id="@+id/fragment_container"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         app:layout_behavior="@string/appbar_scrolling_view_behavior" />
