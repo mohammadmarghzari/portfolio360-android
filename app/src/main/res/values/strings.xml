@@ -31,4 +31,15 @@
     <string name="result_vega">وگا (Vega، به ازای ۱٪): %1$s</string>
     <string name="result_rho">رو (Rho، به ازای ۱٪): %1$s</string>
     <string name="input_error">لطفاً همه فیلدها را با مقادیر معتبر پر کنید.</string>
+
+    <string name="cc_input_title">ورودی‌های کاوردکال</string>
+    <string name="label_cost_basis">قیمت خرید (بهای تمام‌شده)</string>
+    <string name="label_premium">پرمیوم دریافتی</string>
+
+    <string name="result_breakeven">نقطه سر به سر: %1$s</string>
+    <string name="result_max_profit">حداکثر سود (هر واحد): %1$s</string>
+    <string name="result_static_return">بازده ایستا (بدون اعمال): %1$s</string>
+    <string name="result_if_called_return">بازده در صورت اعمال: %1$s</string>
+    <string name="result_annualized_return">بازده سالانه‌شده: %1$s</string>
+    <string name="result_downside_protection">محافظت نزولی: %1$s</string>
 </resources>
