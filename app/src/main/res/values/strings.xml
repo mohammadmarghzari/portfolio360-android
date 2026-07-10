@@ -54,6 +54,9 @@
 
     <string name="outlook_asset_label">دارایی انتخابی</string>
     <string name="outlook_asset_placeholder">ETH — اتصال به قیمت زنده در جلسه بعد</string>
+    <string name="outlook_asset_loading">در حال دریافت قیمت زنده ETH از Derive.xyz…</string>
+    <string name="outlook_asset_live">ETH — %1$s دلار (زنده از Derive.xyz)</string>
+    <string name="outlook_asset_error">ETH — دریافت قیمت زنده ناموفق بود</string>
     <string name="outlook_question">دیدگاه شما نسبت به بازار چیست؟</string>
     <string name="outlook_bullish">صعودی</string>
     <string name="outlook_bearish">نزولی</string>
