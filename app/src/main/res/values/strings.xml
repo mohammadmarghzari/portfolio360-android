@@ -51,4 +51,17 @@
     <string name="result_protection_level">سطح محافظت (نسبت به بهای تمام‌شده): %1$s</string>
     <string name="result_insurance_cost">هزینه بیمه: %1$s</string>
     <string name="result_annualized_cost">هزینه بیمه سالانه‌شده: %1$s</string>
+
+    <string name="outlook_asset_label">دارایی انتخابی</string>
+    <string name="outlook_asset_placeholder">ETH — اتصال به قیمت زنده در جلسه بعد</string>
+    <string name="outlook_question">دیدگاه شما نسبت به بازار چیست؟</string>
+    <string name="outlook_bullish">صعودی</string>
+    <string name="outlook_bearish">نزولی</string>
+    <string name="outlook_volatile">پرنوسان</string>
+    <string name="outlook_neutral">خنثی</string>
+    <string name="outlook_yield">کسب درآمد</string>
+
+    <string name="strategy_list_title">یک استراتژی انتخاب کنید</string>
+    <string name="strategy_coming_soon">به‌زودی</string>
+    <string name="strategy_coming_soon_message">این استراتژی هنوز پیاده‌سازی نشده — در جلسات بعدی اضافه می‌شود.</string>
 </resources>
