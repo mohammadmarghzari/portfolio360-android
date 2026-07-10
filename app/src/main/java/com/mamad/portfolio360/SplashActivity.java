@@ -38,11 +38,9 @@ public class SplashActivity extends AppCompatActivity {
         LinearLayout tags = findViewById(R.id.tagRow);
         ProgressBar bar   = findViewById(R.id.loadingBar);
 
-        // Glow fade in
         ObjectAnimator glowIn = ObjectAnimator.ofFloat(glowCircle, "alpha", 0f, 0.7f);
         glowIn.setDuration(700); glowIn.setStartDelay(150);
 
-        // ETH pop-in
         ObjectAnimator eA  = ObjectAnimator.ofFloat(ethIcon, "alpha", 0f, 1f);
         ObjectAnimator eSX = ObjectAnimator.ofFloat(ethIcon, "scaleX", 0.3f, 1f);
         ObjectAnimator eSY = ObjectAnimator.ofFloat(ethIcon, "scaleY", 0.3f, 1f);
@@ -51,12 +49,10 @@ public class SplashActivity extends AppCompatActivity {
         ethSet.setDuration(600); ethSet.setStartDelay(350);
         ethSet.setInterpolator(new OvershootInterpolator(1.4f));
 
-        // ETH rotate
         ObjectAnimator ethRot = ObjectAnimator.ofFloat(ethIcon, "rotation", 0f, 360f);
         ethRot.setDuration(2800); ethRot.setStartDelay(600);
         ethRot.setInterpolator(new DecelerateInterpolator(2f));
 
-        // Title
         AnimatorSet titleSet = new AnimatorSet();
         titleSet.playTogether(
             ObjectAnimator.ofFloat(title, "alpha", 0f, 1f),
@@ -64,7 +60,6 @@ public class SplashActivity extends AppCompatActivity {
         );
         titleSet.setDuration(500); titleSet.setStartDelay(850);
 
-        // Subtitle
         AnimatorSet subSet = new AnimatorSet();
         subSet.playTogether(
             ObjectAnimator.ofFloat(subtitle, "alpha", 0f, 1f),
@@ -72,7 +67,6 @@ public class SplashActivity extends AppCompatActivity {
         );
         subSet.setDuration(450); subSet.setStartDelay(1080);
 
-        // Divider
         AnimatorSet divSet = new AnimatorSet();
         divSet.playTogether(
             ObjectAnimator.ofFloat(divider, "alpha", 0f, 1f),
@@ -80,7 +74,6 @@ public class SplashActivity extends AppCompatActivity {
         );
         divSet.setDuration(500); divSet.setStartDelay(1300);
 
-        // Tags
         AnimatorSet tagSet = new AnimatorSet();
         tagSet.playTogether(
             ObjectAnimator.ofFloat(tags, "alpha", 0f, 1f),
@@ -88,11 +81,9 @@ public class SplashActivity extends AppCompatActivity {
         );
         tagSet.setDuration(450); tagSet.setStartDelay(1600);
 
-        // Loading bar
         ObjectAnimator barA = ObjectAnimator.ofFloat(bar, "alpha", 0f, 1f);
         barA.setDuration(400); barA.setStartDelay(1900);
 
-        // Glow pulse loop
         ValueAnimator pulse = ValueAnimator.ofFloat(1f, 1.1f, 1f);
         pulse.setDuration(2000);
         pulse.setRepeatCount(ValueAnimator.INFINITE);
@@ -102,14 +93,11 @@ public class SplashActivity extends AppCompatActivity {
             glowCircle.setScaleX(s); glowCircle.setScaleY(s);
         });
 
-        // Start all
-        new AnimatorSet() {{
-            playTogether(glowIn, ethSet, ethRot, titleSet, subSet, divSet, tagSet, barA);
-            start();
-        }};
+        AnimatorSet all = new AnimatorSet();
+        all.playTogether(glowIn, ethSet, ethRot, titleSet, subSet, divSet, tagSet, barA);
+        all.start();
         pulse.start();
 
-        // Navigate after 3.2s
         new Handler(Looper.getMainLooper()).postDelayed(() -> {
             ObjectAnimator out = ObjectAnimator.ofFloat(root, "alpha", 1f, 0f);
             out.setDuration(400);
