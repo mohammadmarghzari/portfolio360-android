@@ -8,6 +8,7 @@ import androidx.viewpager2.adapter.FragmentStateAdapter;
 import com.mamad.portfolio360.fragments.CoveredCallFragment;
 import com.mamad.portfolio360.fragments.GreeksFragment;
 import com.mamad.portfolio360.fragments.PlaceholderFragment;
+import com.mamad.portfolio360.fragments.ProtectivePutFragment;
 
 import java.util.List;
 
@@ -23,12 +24,15 @@ public class TabPagerAdapter extends FragmentStateAdapter {
     @NonNull
     @Override
     public Fragment createFragment(int position) {
-        // تب‌های ۰ و ۱ پیاده‌سازی شده؛ بقیه تب‌ها به‌مرور جایگزین می‌شوند
+        // تب‌های ۰ تا ۲ پیاده‌سازی شده؛ بقیه تب‌ها به‌مرور جایگزین می‌شوند
         if (position == 0) {
             return new GreeksFragment();
         }
         if (position == 1) {
             return new CoveredCallFragment();
+        }
+        if (position == 2) {
+            return new ProtectivePutFragment();
         }
         return PlaceholderFragment.newInstance(tabTitles.get(position));
     }
