@@ -4,6 +4,7 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -11,18 +12,27 @@ import androidx.cardview.widget.CardView;
 import androidx.fragment.app.Fragment;
 
 import com.mamad.portfolio360.R;
+import com.mamad.portfolio360.network.DeriveApiClient;
+
+import java.util.Locale;
 
 /**
  * صفحه اول ویزارد: انتخاب دارایی (فعلاً ثابت روی ETH) و دیدگاه بازار کاربر
  * (صعودی/نزولی/پرنوسان/خنثی/کسب درآمد) — مشابه گام اول Strategy Builder در Derive.xyz.
+ * قیمت لحظه‌ای ETH به‌صورت زنده از API عمومی Derive.xyz دریافت می‌شود.
  */
 public class MarketOutlookFragment extends Fragment {
+
+    private TextView textAsset;
 
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
                               @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_market_outlook, container, false);
+
+        textAsset = view.findViewById(R.id.text_asset);
+        loadSpotPrice();
 
         bindOutlookCard(view, R.id.card_bullish, StrategyMapping.OUTLOOK_BULLISH);
         bindOutlookCard(view, R.id.card_bearish, StrategyMapping.OUTLOOK_BEARISH);
@@ -31,6 +41,25 @@ public class MarketOutlookFragment extends Fragment {
         bindOutlookCard(view, R.id.card_yield, StrategyMapping.OUTLOOK_YIELD);
 
         return view;
+    }
+
+    private void loadSpotPrice() {
+        textAsset.setText(R.string.outlook_asset_loading);
+
+        DeriveApiClient.fetchSpotPrice("ETH", new DeriveApiClient.PriceCallback() {
+            @Override
+            public void onSuccess(double spotPrice) {
+                if (!isAdded()) return;
+                String formatted = String.format(Locale.US, "%,.2f", spotPrice);
+                textAsset.setText(getString(R.string.outlook_asset_live, formatted));
+            }
+
+            @Override
+            public void onError(String message) {
+                if (!isAdded()) return;
+                textAsset.setText(getString(R.string.outlook_asset_error));
+            }
+        });
     }
 
     private void bindOutlookCard(View root, int cardId, String outlookKey) {
