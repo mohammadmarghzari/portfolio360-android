@@ -1,0 +1,49 @@
+package com.mamad.portfolio360.wizard;
+
+import android.os.Bundle;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.cardview.widget.CardView;
+import androidx.fragment.app.Fragment;
+
+import com.mamad.portfolio360.R;
+
+/**
+ * صفحه اول ویزارد: انتخاب دارایی (فعلاً ثابت روی ETH) و دیدگاه بازار کاربر
+ * (صعودی/نزولی/پرنوسان/خنثی/کسب درآمد) — مشابه گام اول Strategy Builder در Derive.xyz.
+ */
+public class MarketOutlookFragment extends Fragment {
+
+    @Nullable
+    @Override
+    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
+                              @Nullable Bundle savedInstanceState) {
+        View view = inflater.inflate(R.layout.fragment_market_outlook, container, false);
+
+        bindOutlookCard(view, R.id.card_bullish, StrategyMapping.OUTLOOK_BULLISH);
+        bindOutlookCard(view, R.id.card_bearish, StrategyMapping.OUTLOOK_BEARISH);
+        bindOutlookCard(view, R.id.card_volatile, StrategyMapping.OUTLOOK_VOLATILE);
+        bindOutlookCard(view, R.id.card_neutral, StrategyMapping.OUTLOOK_NEUTRAL);
+        bindOutlookCard(view, R.id.card_yield, StrategyMapping.OUTLOOK_YIELD);
+
+        return view;
+    }
+
+    private void bindOutlookCard(View root, int cardId, String outlookKey) {
+        CardView card = root.findViewById(cardId);
+        card.setOnClickListener(v -> openStrategyList(outlookKey));
+    }
+
+    private void openStrategyList(String outlookKey) {
+        StrategyListFragment fragment = StrategyListFragment.newInstance(outlookKey);
+        requireActivity().getSupportFragmentManager()
+                .beginTransaction()
+                .replace(R.id.fragment_container, fragment)
+                .addToBackStack(null)
+                .commit();
+    }
+}
