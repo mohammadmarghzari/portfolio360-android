@@ -33,6 +33,11 @@
     <string name="input_error">لطفاً همه فیلدها را با مقادیر معتبر پر کنید.</string>
 
     <string name="cc_input_title">ورودی‌های کاوردکال</string>
+    <string name="btn_load_live_data">دریافت داده زنده از Derive.xyz</string>
+    <string name="live_status_loading">در حال دریافت لیست قراردادهای فعال…</string>
+    <string name="live_status_loaded">%1$d قرارداد کال برای نزدیک‌ترین سررسید یافت شد. یک Strike انتخاب کنید:</string>
+    <string name="live_status_error">خطا: %1$s</string>
+    <string name="live_status_fetching_premium">در حال دریافت پرمیوم زنده…</string>
     <string name="label_cost_basis">قیمت خرید (بهای تمام‌شده)</string>
     <string name="label_premium">پرمیوم دریافتی</string>
 
@@ -57,6 +62,8 @@
     <string name="outlook_asset_loading">در حال دریافت قیمت زنده ETH از Derive.xyz…</string>
     <string name="outlook_asset_live">ETH — %1$s دلار (زنده از Derive.xyz)</string>
     <string name="outlook_asset_error">ETH — دریافت قیمت زنده ناموفق بود</string>
+    <string name="debug_fetch_options">تست دریافت آپشن‌های واقعی (دیباگ)</string>
+    <string name="debug_fetching">در حال دریافت…</string>
     <string name="outlook_question">دیدگاه شما نسبت به بازار چیست؟</string>
     <string name="outlook_bullish">صعودی</string>
     <string name="outlook_bearish">نزولی</string>
