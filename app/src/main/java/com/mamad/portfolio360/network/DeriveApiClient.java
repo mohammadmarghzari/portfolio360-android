@@ -6,7 +6,6 @@ import android.os.Looper;
 import androidx.annotation.NonNull;
 
 import org.json.JSONArray;
-import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
