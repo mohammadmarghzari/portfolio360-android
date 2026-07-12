@@ -72,7 +72,7 @@ public class StrategyMapping {
                         "bull_call_spread",
                         "بول کال اسپرد (Bull Call Spread)",
                         "با ترکیب خرید و فروش کال، هزینه استراتژی صعودی را کاهش دهید.",
-                        false));
+                        true));
                 break;
         }
 
