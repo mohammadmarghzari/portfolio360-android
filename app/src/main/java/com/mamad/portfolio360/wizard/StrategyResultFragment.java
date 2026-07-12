@@ -43,6 +43,9 @@ public class StrategyResultFragment extends Fragment {
     private static final String ARG_STRIKE = "strike";
     private static final String ARG_PREMIUM = "premium";
     private static final String ARG_SPOT = "spot";
+    private static final String ARG_INSTRUMENT2 = "instrument2";
+    private static final String ARG_STRIKE2 = "strike2";
+    private static final String ARG_PREMIUM2 = "premium2";
 
     private static final int COLOR_STRATEGY = Color.parseColor("#38BDF8");
     private static final int COLOR_BASELINE = Color.parseColor("#64748B");
@@ -55,6 +58,11 @@ public class StrategyResultFragment extends Fragment {
     private double premium;
     private double spot;
 
+    private boolean hasSecondLeg;
+    private String instrumentName2;
+    private double strike2;
+    private double premium2;
+
     private LineChart chart;
     private TextInputEditText inputCostBasis;
 
@@ -66,6 +74,25 @@ public class StrategyResultFragment extends Fragment {
         b.putString(ARG_INSTRUMENT, instrumentName);
         b.putDouble(ARG_STRIKE, strike);
         b.putDouble(ARG_PREMIUM, premium);
+        b.putDouble(ARG_SPOT, spot);
+        f.setArguments(b);
+        return f;
+    }
+
+    public static StrategyResultFragment newInstanceTwoLeg(
+            String strategyKey,
+            String instrument1, double strike1, double premium1,
+            String instrument2, double strikeB, double premiumB,
+            double spot) {
+        StrategyResultFragment f = new StrategyResultFragment();
+        Bundle b = new Bundle();
+        b.putString(ARG_STRATEGY, strategyKey);
+        b.putString(ARG_INSTRUMENT, instrument1);
+        b.putDouble(ARG_STRIKE, strike1);
+        b.putDouble(ARG_PREMIUM, premium1);
+        b.putString(ARG_INSTRUMENT2, instrument2);
+        b.putDouble(ARG_STRIKE2, strikeB);
+        b.putDouble(ARG_PREMIUM2, premiumB);
         b.putDouble(ARG_SPOT, spot);
         f.setArguments(b);
         return f;
@@ -84,6 +111,13 @@ public class StrategyResultFragment extends Fragment {
         premium = args.getDouble(ARG_PREMIUM);
         spot = args.getDouble(ARG_SPOT);
 
+        hasSecondLeg = args.containsKey(ARG_INSTRUMENT2);
+        if (hasSecondLeg) {
+            instrumentName2 = args.getString(ARG_INSTRUMENT2, "");
+            strike2 = args.getDouble(ARG_STRIKE2);
+            premium2 = args.getDouble(ARG_PREMIUM2);
+        }
+
         chart = view.findViewById(R.id.payoff_chart);
         inputCostBasis = view.findViewById(R.id.input_cost_basis);
 
@@ -92,10 +126,12 @@ public class StrategyResultFragment extends Fragment {
 
         String title;
         if ("long_call".equals(strategyKey)) title = getString(R.string.strategy_long_call_title);
+        else if ("bull_call_spread".equals(strategyKey)) title = getString(R.string.strategy_bull_spread_title);
         else if ("protective_put".equals(strategyKey)) title = getString(R.string.strategy_pp_title);
         else title = getString(R.string.strategy_cc_title);
         ((TextView) view.findViewById(R.id.result_strategy_name)).setText(title);
-        ((TextView) view.findViewById(R.id.result_contract_name)).setText(instrumentName);
+        String contractLabel = hasSecondLeg ? (instrumentName + "  +  " + instrumentName2) : instrumentName;
+        ((TextView) view.findViewById(R.id.result_contract_name)).setText(contractLabel);
 
         MaterialButton recalcButton = view.findViewById(R.id.btn_recalculate);
         recalcButton.setOnClickListener(v -> recalculate(view));
@@ -106,7 +142,7 @@ public class StrategyResultFragment extends Fragment {
     }
 
     private void recalculate(View view) {
-        boolean isPureOption = "long_call".equals(strategyKey);
+        boolean isPureOption = "long_call".equals(strategyKey) || "bull_call_spread".equals(strategyKey);
 
         View costBasisCard = view.findViewById(R.id.cost_basis_card);
         if (costBasisCard != null) {
@@ -120,7 +156,9 @@ public class StrategyResultFragment extends Fragment {
         }
 
         List<PayoffEngine.Leg> legs;
-        if (isPureOption) {
+        if ("bull_call_spread".equals(strategyKey)) {
+            legs = PayoffEngine.bullCallSpread(strike, premium, strike2, premium2, 1);
+        } else if ("long_call".equals(strategyKey)) {
             legs = PayoffEngine.longCall(strike, premium, 1);
         } else if ("protective_put".equals(strategyKey)) {
             legs = PayoffEngine.protectivePut(costBasis, strike, premium, 1);
@@ -136,8 +174,8 @@ public class StrategyResultFragment extends Fragment {
                 : PayoffEngine.spotOnly(costBasis, 1);
 
         setupChart(result, baseline, costBasis);
-        bindKpis(view, result, premium, strategyKey);
-        bindExplanation(view, result, strategyKey, strike, premium);
+        bindKpis(view, result, strategyKey);
+        bindExplanation(view, result, strategyKey);
     }
 
     private double parseCostBasis() {
@@ -271,7 +309,21 @@ public class StrategyResultFragment extends Fragment {
         chart.invalidate();
     }
 
-    private void bindKpis(View view, PayoffEngine.Result r, double premium, String strategyKey) {
+    /** پرمیوم خالص استراتژی: مثبت یعنی دریافتی (اعتباری)، منفی یعنی پرداختی (بدهکاری). */
+    private double netPremiumSigned() {
+        switch (strategyKey) {
+            case "covered_call":
+                return premium;                       // دریافت پرمیوم فروش کال
+            case "bull_call_spread":
+                return -(premium - premium2);          // پرداخت خالص: خرید گران‌تر منهای فروش
+            case "long_call":
+            case "protective_put":
+            default:
+                return -premium;                       // پرداخت پرمیوم خرید
+        }
+    }
+
+    private void bindKpis(View view, PayoffEngine.Result r, String strategyKey) {
         TextView maxProfit = view.findViewById(R.id.kpi_max_profit);
         TextView maxLoss = view.findViewById(R.id.kpi_max_loss);
         TextView breakeven = view.findViewById(R.id.kpi_breakeven);
@@ -291,26 +343,29 @@ public class StrategyResultFragment extends Fragment {
             breakeven.setText(sb.toString());
         }
 
-        boolean received = "covered_call".equals(strategyKey);
-        prem.setText((received ? "+" : "−") + fmt(Math.abs(premium)));
+        double net = netPremiumSigned();
+        prem.setText((net >= 0 ? "+" : "−") + fmt(Math.abs(net)));
     }
 
-    private void bindExplanation(View view, PayoffEngine.Result r, String strategyKey,
-                                  double strike, double premium) {
+    private void bindExplanation(View view, PayoffEngine.Result r, String strategyKey) {
         TextView tv = view.findViewById(R.id.result_explanation);
+        String be = r.breakevens.isEmpty() ? "—" : fmt(r.breakevens.get(0));
         String text;
-        if ("long_call".equals(strategyKey)) {
-            text = getString(R.string.explain_long_call,
-                    fmt(strike), fmt(premium),
-                    r.breakevens.isEmpty() ? "—" : fmt(r.breakevens.get(0)));
+
+        if ("bull_call_spread".equals(strategyKey)) {
+            double lowerStrike = Math.min(strike, strike2);
+            double higherStrike = Math.max(strike, strike2);
+            double netDebit = Math.abs(netPremiumSigned());
+            text = getString(R.string.explain_bull_call_spread,
+                    fmt(lowerStrike), fmt(higherStrike), fmt(netDebit), fmt(r.maxProfit), be);
+        } else if ("long_call".equals(strategyKey)) {
+            text = getString(R.string.explain_long_call, fmt(strike), fmt(premium), be);
         } else if ("protective_put".equals(strategyKey)) {
             text = getString(R.string.explain_protective_put,
-                    fmt(strike), fmt(premium), fmt(Math.abs(r.maxLoss)),
-                    r.breakevens.isEmpty() ? "—" : fmt(r.breakevens.get(0)));
+                    fmt(strike), fmt(premium), fmt(Math.abs(r.maxLoss)), be);
         } else {
             text = getString(R.string.explain_covered_call,
-                    fmt(strike), fmt(premium), fmt(r.maxProfit),
-                    r.breakevens.isEmpty() ? "—" : fmt(r.breakevens.get(0)));
+                    fmt(strike), fmt(premium), fmt(r.maxProfit), be);
         }
         tv.setText(text);
     }
