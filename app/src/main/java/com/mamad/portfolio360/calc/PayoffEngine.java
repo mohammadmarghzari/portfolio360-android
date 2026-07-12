@@ -173,4 +173,22 @@ public class PayoffEngine {
         legs.add(new Leg(LegType.SPOT, true, 0, costBasis, qty));
         return legs;
     }
+
+    /**
+     * بول کال اسپرد: خرید کال با قیمت اعمال پایین‌تر + فروش کال با قیمت اعمال بالاتر.
+     * ترتیب دو قرارداد ورودی مهم نیست — خودش بر اساس strike مرتب می‌کند.
+     */
+    public static List<Leg> bullCallSpread(double strikeA, double premiumA,
+                                            double strikeB, double premiumB, double qty) {
+        List<Leg> legs = new ArrayList<>();
+        boolean aIsLower = strikeA <= strikeB;
+        double lowerStrike = aIsLower ? strikeA : strikeB;
+        double lowerPremium = aIsLower ? premiumA : premiumB;
+        double higherStrike = aIsLower ? strikeB : strikeA;
+        double higherPremium = aIsLower ? premiumB : premiumA;
+
+        legs.add(new Leg(LegType.CALL, true, lowerStrike, lowerPremium, qty));   // خرید
+        legs.add(new Leg(LegType.CALL, false, higherStrike, higherPremium, qty)); // فروش
+        return legs;
+    }
 }
