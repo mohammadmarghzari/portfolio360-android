@@ -65,6 +65,7 @@
     <string name="outlook_asset_error">ETH — دریافت قیمت زنده ناموفق بود</string>
     <string name="debug_fetch_options">مشاهده قراردادهای آپشن ETH</string>
     <string name="debug_fetching">در حال دریافت…</string>
+    <string name="debug_test_yahoo">تست دریافت داده تاریخی AAPL از Yahoo Finance</string>
     <string name="build_version_tag">نسخه build: SESSION-8-DEBUG-TAG</string>
     <string name="outlook_question">دیدگاه شما نسبت به بازار چیست؟</string>
     <string name="outlook_bullish">صعودی</string>
