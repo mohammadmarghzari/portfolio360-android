@@ -15,12 +15,16 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
+import androidx.cardview.widget.CardView;
+
 import com.google.android.material.button.MaterialButton;
 import com.mamad.portfolio360.R;
+import com.mamad.portfolio360.calc.CvarEngine;
 import com.mamad.portfolio360.calc.ReturnStats;
 import com.mamad.portfolio360.network.HistoricalPoint;
 import com.mamad.portfolio360.network.YahooFinanceClient;
 
+import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
@@ -40,6 +44,7 @@ public class PortfolioSetupFragment extends Fragment {
 
     private String activeCategory = AssetCatalog.CAT_STOCKS;
     private String selectedTimeframe = "1y";
+    private String selectedMethod;
 
     private LinearLayout categoryContainer;
     private LinearLayout assetListContainer;
@@ -254,11 +259,15 @@ public class PortfolioSetupFragment extends Fragment {
 
     // ---------- روش‌های تحلیل ----------
 
+    private LinearLayout methodContainer;
+
     private void buildMethodCards(LinearLayout container) {
+        methodContainer = container;
         LayoutInflater inflater = LayoutInflater.from(requireContext());
 
         for (OptimizationMethod method : OptimizationMethod.all()) {
-            View card = inflater.inflate(R.layout.item_strategy_card, container, false);
+            View cardView = inflater.inflate(R.layout.item_strategy_card, container, false);
+            CardView card = (CardView) cardView;
 
             TextView title = card.findViewById(R.id.text_title);
             TextView description = card.findViewById(R.id.text_description);
@@ -267,11 +276,26 @@ public class PortfolioSetupFragment extends Fragment {
             title.setText(method.title);
             description.setText(method.description);
             badge.setVisibility(method.implemented ? View.GONE : View.VISIBLE);
+            card.setTag(method.key);
 
-            card.setOnClickListener(v -> Toast.makeText(getContext(),
-                    R.string.strategy_coming_soon_message, Toast.LENGTH_SHORT).show());
+            card.setOnClickListener(v -> {
+                selectedMethod = method.key;
+                highlightMethodCards();
+            });
 
             container.addView(card);
+        }
+    }
+
+    private void highlightMethodCards() {
+        int selectedTint = Color.argb(40, 91, 62, 158); // بنفش کم‌رنگ برای کارت انتخاب‌شده
+        for (int i = 0; i < methodContainer.getChildCount(); i++) {
+            View child = methodContainer.getChildAt(i);
+            if (!(child instanceof CardView)) continue;
+            CardView card = (CardView) child;
+            boolean selected = selectedMethod != null && selectedMethod.equals(card.getTag());
+            card.setCardBackgroundColor(selected ? selectedTint
+                    : androidx.core.content.ContextCompat.getColor(requireContext(), R.color.blueprint_surface));
         }
     }
 
@@ -283,7 +307,87 @@ public class PortfolioSetupFragment extends Fragment {
                     Toast.LENGTH_SHORT).show();
             return;
         }
-        // اتصال داده تاریخی Yahoo Finance و محاسبات در جلسه بعد اضافه می‌شود
-        Toast.makeText(getContext(), R.string.portfolio_coming_soon, Toast.LENGTH_LONG).show();
+        if (selectedMethod == null) {
+            Toast.makeText(getContext(), R.string.portfolio_select_method_first,
+                    Toast.LENGTH_SHORT).show();
+            return;
+        }
+        if ("cvar".equals(selectedMethod)) {
+            runCvarAnalysis();
+        } else {
+            Toast.makeText(getContext(), R.string.portfolio_coming_soon, Toast.LENGTH_LONG).show();
+        }
+    }
+
+    private void runCvarAnalysis() {
+        View root = getView();
+        if (root == null) return;
+
+        CardView resultCard = root.findViewById(R.id.cvar_result_card);
+        TextView resultTitle = root.findViewById(R.id.cvar_result_title);
+        TextView resultBody = root.findViewById(R.id.cvar_result_body);
+
+        resultCard.setVisibility(View.VISIBLE);
+        resultTitle.setText(R.string.cvar_loading_title);
+        resultBody.setText(getString(R.string.cvar_loading_body, selectedSymbols.size()));
+
+        String yahooRange = mapTimeframeToYahooRange(selectedTimeframe);
+        Map<String, List<HistoricalPoint>> histories = new HashMap<>();
+        List<String> failedSymbols = new java.util.ArrayList<>();
+
+        YahooFinanceClient.fetchMultipleHistories(new java.util.ArrayList<>(selectedSymbols), yahooRange,
+                new YahooFinanceClient.MultiHistoryCallback() {
+                    @Override
+                    public void onEachSuccess(String symbol, List<HistoricalPoint> points) {
+                        histories.put(symbol, points);
+                    }
+
+                    @Override
+                    public void onEachError(String symbol, String message) {
+                        failedSymbols.add(symbol);
+                    }
+
+                    @Override
+                    public void onComplete() {
+                        if (!isAdded()) return;
+
+                        if (histories.size() < 1) {
+                            resultTitle.setText(R.string.cvar_error_title);
+                            resultBody.setText(getString(R.string.cvar_error_no_data));
+                            return;
+                        }
+
+                        CvarEngine.Result result = CvarEngine.computeEqualWeighted(histories);
+
+                        if (result.alignedDays < 30) {
+                            resultTitle.setText(R.string.cvar_error_title);
+                            resultBody.setText(getString(R.string.cvar_error_insufficient_days, result.alignedDays));
+                            return;
+                        }
+
+                        String failedNote = failedSymbols.isEmpty() ? ""
+                                : "\n\n" + getString(R.string.cvar_failed_symbols, String.join("، ", failedSymbols));
+
+                        resultTitle.setText(getString(R.string.cvar_result_title, histories.size()));
+                        resultBody.setText(String.format(Locale.US,
+                                "%s\n\n%s\n%s\n%s\n%s\n%s%s",
+                                getString(R.string.cvar_aligned_days, result.alignedDays),
+                                getString(R.string.cvar_annualized_return, fmtPct(result.annualizedReturnPct)),
+                                getString(R.string.cvar_annualized_vol, fmtPct(result.annualizedVolPct)),
+                                getString(R.string.cvar_var95, fmtPct(result.var95Pct)),
+                                getString(R.string.cvar_cvar95, fmtPct(result.cvar95Pct)),
+                                getString(R.string.cvar_weights_note),
+                                failedNote));
+                    }
+                });
+    }
+
+    private String mapTimeframeToYahooRange(String key) {
+        if ("6m".equals(key)) return "6mo";
+        return key; // "1y", "2y", "3y" مستقیماً معتبرند
+    }
+
+    private String fmtPct(double v) {
+        return String.format(Locale.US, "%.2f%%", v);
     }
 }
