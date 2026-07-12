@@ -6,4 +6,6 @@
     <color name="blueprint_accent">#7FB3E0</color>
     <color name="blueprint_text">#E7ECF5</color>
     <color name="blueprint_grid_line">#2A3550</color>
+    <color name="chain_call">#4ADE80</color>
+    <color name="chain_put">#F87171</color>
 </resources>
