@@ -49,7 +49,11 @@ public class OptionChainFragment extends Fragment {
 
     /** استراتژی‌هایی که نیاز به انتخاب دو قرارداد دارند. */
     private static final Set<String> TWO_LEG_STRATEGIES = new HashSet<>(
-            Arrays.asList("bull_call_spread"));
+            Arrays.asList("bull_call_spread", "long_strangle"));
+
+    /** استراتژی‌هایی که با یک لمس روی یک ردیف، هر دو پایه (کال+پوت هم‌قیمت) انتخاب می‌شوند. */
+    private static final Set<String> SAME_ROW_STRATEGIES = new HashSet<>(
+            Arrays.asList("long_straddle"));
 
     /** حالت عادی: فقط نمایش زنجیره */
     public static OptionChainFragment newInstance() {
@@ -128,6 +132,14 @@ public class OptionChainFragment extends Fragment {
     }
 
     private String buildHintText() {
+        if (SAME_ROW_STRATEGIES.contains(selectForStrategy)) {
+            return getString(R.string.chain_hint_pick_straddle_row);
+        }
+        if ("long_strangle".equals(selectForStrategy)) {
+            return isSecondLeg
+                    ? getString(R.string.chain_hint_pick_second_put, fmtStrike(leg1Strike))
+                    : getString(R.string.chain_hint_pick_first_call);
+        }
         if (isTwoLegStrategy() && isSecondLeg) {
             return getString(R.string.chain_hint_pick_second_call, fmtStrike(leg1Strike));
         }
@@ -267,7 +279,11 @@ public class OptionChainFragment extends Fragment {
 
             row.setTag(new OptionContract[]{call, put});
 
-            if (selectForStrategy != null && !isSameAsLeg1) {
+            if (SAME_ROW_STRATEGIES.contains(selectForStrategy)) {
+                if (call != null && put != null) {
+                    row.setOnClickListener(v -> onStraddleRowPicked(call, put));
+                }
+            } else if (selectForStrategy != null && !isSameAsLeg1) {
                 OptionContract target = isPutStrategy() ? put : call;
                 if (target != null) {
                     row.setOnClickListener(v -> onContractPicked(target));
@@ -348,7 +364,34 @@ public class OptionChainFragment extends Fragment {
     }
 
     private boolean isPutStrategy() {
-        return "protective_put".equals(selectForStrategy);
+        if ("protective_put".equals(selectForStrategy)) return true;
+        if ("long_strangle".equals(selectForStrategy) && isSecondLeg) return true; // پایه دوم استرنگل = پوت
+        return false;
+    }
+
+    private void onStraddleRowPicked(OptionContract call, OptionContract put) {
+        if (Double.isNaN(call.markPrice) || Double.isNaN(put.markPrice)) {
+            android.widget.Toast.makeText(getContext(),
+                    R.string.chain_no_price, android.widget.Toast.LENGTH_SHORT).show();
+            return;
+        }
+        if (Double.isNaN(spotPrice)) {
+            android.widget.Toast.makeText(getContext(),
+                    R.string.chain_no_spot, android.widget.Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        StrategyResultFragment fragment = StrategyResultFragment.newInstanceTwoLeg(
+                selectForStrategy,
+                call.instrumentName, call.strike, call.markPrice,
+                put.instrumentName, put.strike, put.markPrice,
+                spotPrice);
+
+        requireActivity().getSupportFragmentManager()
+                .beginTransaction()
+                .replace(R.id.fragment_container, fragment)
+                .addToBackStack(null)
+                .commit();
     }
 
     private void onContractPicked(OptionContract c) {
