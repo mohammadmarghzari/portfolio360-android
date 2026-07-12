@@ -8,4 +8,8 @@
     <color name="blueprint_grid_line">#2A3550</color>
     <color name="chain_call">#4ADE80</color>
     <color name="chain_put">#F87171</color>
+    <color name="chart_surface">#0F172A</color>
+    <color name="chart_text">#E2E8F0</color>
+    <color name="chart_strategy">#38BDF8</color>
+    <color name="chart_baseline">#64748B</color>
 </resources>
