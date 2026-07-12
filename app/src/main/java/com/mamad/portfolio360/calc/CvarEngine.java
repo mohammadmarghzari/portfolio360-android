@@ -2,12 +2,10 @@ package com.mamad.portfolio360.calc;
 
 import com.mamad.portfolio360.network.HistoricalPoint;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.TreeMap;
 
 /**
  * محاسبه VaR و CVaR تاریخی (Historical Simulation) برای یک پرتفوی
@@ -19,18 +17,16 @@ import java.util.TreeMap;
 public class CvarEngine {
 
     public static class Result {
-        public int alignedDays;           // تعداد روزهای هم‌تراز بین همه دارایی‌ها
+        public int alignedDays;
         public double meanDailyReturnPct;
         public double annualizedReturnPct;
         public double annualizedVolPct;
-        public double var95Pct;           // بازده در صدک ۵ (منفی = زیان)
-        public double cvar95Pct;          // میانگین بدترین ۵٪ (همیشه ≤ VaR)
+        public double var95Pct;
+        public double cvar95Pct;
+        public double[] dailyReturns = new double[0]; // برای استفاده مجدد توسط مونت‌کارلو
         public Map<String, Double> weights = new HashMap<>();
     }
 
-    /**
-     * @param histories نگاشت نماد → لیست داده تاریخی آن (هر لیست باید صعودی بر اساس زمان باشد)
-     */
     public static Result computeEqualWeighted(Map<String, List<HistoricalPoint>> histories) {
         Result res = new Result();
 
@@ -40,45 +36,13 @@ public class CvarEngine {
         double weight = 1.0 / n;
         for (String symbol : histories.keySet()) res.weights.put(symbol, weight);
 
-        // ۱) هم‌ترازسازی بر اساس روز تقویمی (epoch روز = epochSeconds / 86400)
-        TreeMap<Long, Map<String, Double>> byDay = new TreeMap<>();
-        for (Map.Entry<String, List<HistoricalPoint>> e : histories.entrySet()) {
-            for (HistoricalPoint p : e.getValue()) {
-                long dayKey = p.epochSeconds / 86400L;
-                byDay.computeIfAbsent(dayKey, k -> new HashMap<>()).put(e.getKey(), p.close);
-            }
-        }
+        PortfolioReturns.Aligned aligned = PortfolioReturns.computeEqualWeighted(histories);
+        res.alignedDays = aligned.alignedDays;
+        res.dailyReturns = aligned.dailyReturns;
 
-        List<Long> alignedDays = new ArrayList<>();
-        for (Map.Entry<Long, Map<String, Double>> e : byDay.entrySet()) {
-            if (e.getValue().keySet().containsAll(histories.keySet())) {
-                alignedDays.add(e.getKey());
-            }
-        }
+        double[] portfolioReturns = aligned.dailyReturns;
+        if (portfolioReturns.length < 1) return res;
 
-        if (alignedDays.size() < 2) {
-            res.alignedDays = alignedDays.size();
-            return res;
-        }
-
-        // ۲) بازده روزانه هم‌وزن پرتفوی
-        double[] portfolioReturns = new double[alignedDays.size() - 1];
-        for (int i = 1; i < alignedDays.size(); i++) {
-            Map<String, Double> prevPrices = byDay.get(alignedDays.get(i - 1));
-            Map<String, Double> currPrices = byDay.get(alignedDays.get(i));
-
-            double portRet = 0;
-            for (String symbol : histories.keySet()) {
-                double prev = prevPrices.get(symbol);
-                double curr = currPrices.get(symbol);
-                portRet += weight * (curr / prev - 1.0);
-            }
-            portfolioReturns[i - 1] = portRet;
-        }
-
-        res.alignedDays = alignedDays.size();
-
-        // ۳) میانگین و نوسان
         double mean = 0;
         for (double r : portfolioReturns) mean += r;
         mean /= portfolioReturns.length;
@@ -92,7 +56,6 @@ public class CvarEngine {
         res.annualizedReturnPct = (Math.pow(1 + mean, 252) - 1) * 100.0;
         res.annualizedVolPct = stdDev * Math.sqrt(252) * 100.0;
 
-        // ۴) VaR/CVaR تاریخی در سطح اطمینان ۹۵٪
         double[] sorted = portfolioReturns.clone();
         Arrays.sort(sorted);
 
