@@ -67,7 +67,7 @@ public class StrategyMapping {
                         "long_call",
                         "خرید کال (Long Call)",
                         "با خرید کال، از افزایش قیمت با ریسک محدود سود ببرید.",
-                        false));
+                        true));
                 list.add(new StrategyOption(
                         "bull_call_spread",
                         "بول کال اسپرد (Bull Call Spread)",
