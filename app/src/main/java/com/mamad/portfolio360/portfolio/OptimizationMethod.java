@@ -23,7 +23,7 @@ public class OptimizationMethod {
                 "cvar",
                 "بهینه‌سازی CVaR",
                 "کمینه‌سازی میانگین بدترین زیان‌های محتمل (Conditional Value at Risk) به‌جای صرفاً واریانس.",
-                false));
+                true));
         list.add(new OptimizationMethod(
                 "monte_carlo",
                 "شبیه‌سازی مونت‌کارلو",
