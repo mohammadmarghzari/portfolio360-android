@@ -90,31 +90,12 @@
     <string name="chain_greeks_line">%1$s / %2$s / %3$s / %4$s</string>
 
     <string name="chain_hint_pick_call">یک قرارداد کال (ستون سبز) را برای فروش انتخاب کنید</string>
-    <string name="chain_hint_pick_first_call">پایه اول: یک کال برای خرید انتخاب کنید</string>
-    <string name="chain_hint_pick_second_call">پایه دوم: یک کال دیگر برای فروش انتخاب کنید (پایه اول: اعمال %1$s)</string>
-    <string name="chain_hint_pick_straddle_row">روی یک ردیف بزنید تا کال و پوت هم‌قیمت آن با هم انتخاب شوند</string>
-    <string name="chain_hint_pick_second_put">حالا یک پوت انتخاب کنید (پایه اول: کال با اعمال %1$s)</string>
-
-    <string name="ic_step1_buy_put">پایه ۱ از ۴: یک پوت دورتر برای خرید (بیمه پایین) انتخاب کنید</string>
-    <string name="ic_step2_sell_put">پایه ۲ از ۴: یک پوت نزدیک‌تر برای فروش انتخاب کنید</string>
-    <string name="ic_step3_sell_call">پایه ۳ از ۴: یک کال نزدیک‌تر برای فروش انتخاب کنید</string>
-    <string name="ic_step4_buy_call">پایه ۴ از ۴: یک کال دورتر برای خرید (بیمه بالا) انتخاب کنید</string>
-
-    <string name="bf_step1_buy_lower">پایه ۱ از ۳: یک کال با قیمت اعمال پایین‌تر برای خرید انتخاب کنید</string>
-    <string name="bf_step2_sell_middle">پایه ۲ از ۳: یک کال با قیمت اعمال وسط برای فروش انتخاب کنید (۲ واحد)</string>
-    <string name="bf_step3_buy_upper">پایه ۳ از ۳: یک کال با قیمت اعمال بالاتر برای خرید انتخاب کنید</string>
     <string name="chain_hint_pick_put">یک قرارداد پوت (ستون قرمز) را برای خرید انتخاب کنید</string>
     <string name="chain_no_price">قیمت این قرارداد هنوز دریافت نشده — کمی صبر کنید.</string>
     <string name="chain_no_spot">قیمت لحظه‌ای دریافت نشده — کمی صبر کنید.</string>
 
     <string name="strategy_cc_title">کاوردکال</string>
     <string name="strategy_pp_title">پروتکتیو پوت</string>
-    <string name="strategy_long_call_title">خرید کال (Long Call)</string>
-    <string name="strategy_bull_spread_title">بول کال اسپرد (Bull Call Spread)</string>
-    <string name="strategy_straddle_title">استرادل بلند (Long Straddle)</string>
-    <string name="strategy_strangle_title">استرنگل بلند (Long Strangle)</string>
-    <string name="strategy_iron_condor_title">آیرون کاندور (Iron Condor)</string>
-    <string name="strategy_butterfly_title">پروانه‌ای (Butterfly)</string>
 
     <string name="payoff_chart_title">نمودار سود و زیان در سررسید</string>
     <string name="legend_strategy">با استراتژی</string>
@@ -131,12 +112,6 @@
 
     <string name="explain_covered_call">شما دارایی خود را نگه داشته‌اید و یک کال با قیمت اعمال %1$s فروخته‌اید و %2$s پرمیوم دریافت کرده‌اید.\n\n• سود شما تا سقف %3$s محدود می‌شود — اگر قیمت بالاتر از قیمت اعمال برود، دارایی از شما خریداری می‌شود و از رشد بیشتر بی‌بهره می‌مانید.\n• پرمیوم دریافتی، نقطه سر به سر را به %4$s پایین می‌آورد و کمی در برابر افت قیمت محافظت می‌کند.\n• اما اگر قیمت شدیداً بریزد، زیان شما همچنان بزرگ خواهد بود.</string>
 
-    <string name="explain_long_call">شما یک اختیار خرید (Call) با قیمت اعمال %1$s خریده‌اید و %2$s پرمیوم پرداخت کرده‌اید.\n\n• حداکثر زیان شما محدود به همان پرمیوم پرداختی است — چیزی بیشتر از این از دست نمی‌دهید.\n• سود شما نامحدود است؛ هرچه قیمت بالاتر از %3$s برود، سود شما به همان اندازه رشد می‌کند.\n• اگر قیمت زیر قیمت اعمال بماند، این اختیار بی‌ارزش منقضی می‌شود و کل پرمیوم را از دست می‌دهید.</string>
-    <string name="explain_bull_call_spread">شما یک کال با قیمت اعمال %1$s خریده‌اید و هم‌زمان یک کال با قیمت اعمال بالاتر (%2$s) فروخته‌اید — هزینه خالص شما %3$s شده است.\n\n• حداکثر سود شما به %4$s محدود می‌شود — فروش کال بالایی، سقف سود را می‌بندد اما هزینه استراتژی را هم کاهش می‌دهد.\n• حداکثر زیان شما هم محدود است، دقیقاً به همان هزینه خالص پرداختی.\n• نقطه سر به سر شما %5$s است.</string>
-    <string name="explain_long_straddle">شما هم‌زمان یک کال و یک پوت، هر دو با قیمت اعمال %1$s، خریده‌اید — مجموع هزینه شما %2$s شده است.\n\n• اگر قیمت دقیقاً روی %1$s بماند، هر دو اختیار بی‌ارزش می‌شوند و کل هزینه را از دست می‌دهید — این بدترین حالت است.\n• هرچه قیمت در هر جهتی (بالا یا پایین) بیشتر حرکت کند، سود شما بیشتر می‌شود.\n• نقاط سر به سر شما %3$s هستند.</string>
-    <string name="explain_long_strangle">شما یک پوت با قیمت اعمال %1$s و یک کال با قیمت اعمال %2$s خریده‌اید — مجموع هزینه شما %3$s شده است.\n\n• اگر قیمت بین این دو قیمت اعمال بماند، هر دو اختیار بی‌ارزش می‌شوند و کل هزینه را از دست می‌دهید.\n• این استراتژی معمولاً از استرادل ارزان‌تر است، اما به حرکت بزرگ‌تری برای سودآوری نیاز دارد.\n• نقاط سر به سر شما %4$s هستند.</string>
-    <string name="explain_iron_condor">شما یک آیرون کاندور ساخته‌اید: خرید پوت %1$s، فروش پوت %2$s، فروش کال %3$s، خرید کال %4$s — پرمیوم خالص دریافتی شما %5$s است.\n\n• اگر قیمت بین %2$s و %3$s بماند، حداکثر سود (همان پرمیوم دریافتی) را می‌برید.\n• اگر قیمت از هر طرف زیاد حرکت کند، زیان شما محدود می‌ماند — بال‌های محافظ (پوت %1$s و کال %4$s) سقف زیان را می‌بندند.\n• نقاط سر به سر شما %6$s هستند.</string>
-    <string name="explain_butterfly">شما یک پروانه‌ای ساخته‌اید: خرید کال %1$s، فروش دو کال %2$s، خرید کال %3$s — هزینه خالص شما %4$s است.\n\n• بیشترین سود (%5$s) دقیقاً وقتی است که قیمت سررسید روی %2$s بماند.\n• هرچه قیمت از %2$s دورتر شود (در هر جهتی)، سود شما کم می‌شود؛ حداکثر زیان همان هزینه خالص است.\n• نقاط سر به سر شما %6$s هستند.</string>
     <string name="explain_protective_put">شما دارایی خود را نگه داشته‌اید و یک پوت با قیمت اعمال %1$s خریده‌اید و %2$s پرمیوم پرداخت کرده‌اید.\n\n• زیان شما در بدترین حالت به %3$s محدود می‌شود — این پوت مانند یک بیمه عمل می‌کند.\n• هزینه این بیمه، نقطه سر به سر را به %4$s بالا می‌برد.\n• سود شما همچنان نامحدود است؛ اگر قیمت رشد کند، فقط هزینه بیمه از سودتان کم می‌شود.</string>
 
     <string name="home_title">Portfolio360</string>
@@ -165,4 +140,20 @@
     <string name="timeframe_1y">۱ ساله</string>
     <string name="timeframe_2y">۲ ساله</string>
     <string name="timeframe_3y">۳ ساله</string>
+
+    <string name="portfolio_select_method_first">یک روش تحلیل انتخاب کنید.</string>
+
+    <string name="cvar_loading_title">در حال محاسبه CVaR…</string>
+    <string name="cvar_loading_body">در حال دریافت داده تاریخی %1$d دارایی از Yahoo Finance…</string>
+    <string name="cvar_error_title">خطا در محاسبه</string>
+    <string name="cvar_error_no_data">هیچ داده معتبری دریافت نشد.</string>
+    <string name="cvar_error_insufficient_days">فقط %1$d روز هم‌تراز بین دارایی‌ها یافت شد — برای محاسبه معتبر، حداقل ۳۰ روز لازم است.</string>
+    <string name="cvar_result_title">نتیجه CVaR — پرتفوی هم‌وزن (%1$d دارایی)</string>
+    <string name="cvar_aligned_days">روزهای هم‌تراز مورد استفاده: %1$s</string>
+    <string name="cvar_annualized_return">بازده سالانه‌شده پرتفوی: %1$s</string>
+    <string name="cvar_annualized_vol">نوسان سالانه‌شده پرتفوی: %1$s</string>
+    <string name="cvar_var95">VaR ۹۵٪ (روزانه): %1$s</string>
+    <string name="cvar_cvar95">CVaR ۹۵٪ (روزانه، میانگین بدترین ۵٪ روزها): %1$s</string>
+    <string name="cvar_weights_note">وزن هر دارایی: مساوی (هم‌وزن) — بهینه‌سازی وزن‌ها در جلسه بعد اضافه می‌شود.</string>
+    <string name="cvar_failed_symbols">دریافت داده این نمادها ناموفق بود: %1$s</string>
 </resources>
