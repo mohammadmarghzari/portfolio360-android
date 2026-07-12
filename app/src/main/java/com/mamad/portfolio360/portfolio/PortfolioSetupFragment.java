@@ -4,6 +4,8 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.content.res.ColorStateList;
+import android.graphics.Color;
 import android.widget.CheckBox;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -104,7 +106,7 @@ public class PortfolioSetupFragment extends Fragment {
             View child = categoryContainer.getChildAt(i);
             if (child instanceof MaterialButton) {
                 boolean active = activeCategory.equals(child.getTag());
-                child.setAlpha(active ? 1f : 0.5f);
+                applyChipStyle((MaterialButton) child, active, R.color.home_card_portfolio);
             }
         }
     }
@@ -188,8 +190,23 @@ public class PortfolioSetupFragment extends Fragment {
             View child = timeframeContainer.getChildAt(i);
             if (child instanceof MaterialButton) {
                 boolean active = selectedTimeframe.equals(child.getTag());
-                child.setAlpha(active ? 1f : 0.5f);
+                applyChipStyle((MaterialButton) child, active, R.color.home_card_portfolio);
             }
+        }
+    }
+
+    /** دکمه انتخاب‌شده را کاملاً پر و رنگی نشان می‌دهد؛ بقیه خط‌دار و خنثی می‌مانند. */
+    private void applyChipStyle(MaterialButton button, boolean active, int activeColorRes) {
+        int activeColor = androidx.core.content.ContextCompat.getColor(requireContext(), activeColorRes);
+        if (active) {
+            button.setBackgroundTintList(ColorStateList.valueOf(activeColor));
+            button.setTextColor(Color.WHITE);
+            button.setStrokeWidth(0);
+        } else {
+            button.setBackgroundTintList(ColorStateList.valueOf(Color.TRANSPARENT));
+            button.setTextColor(activeColor);
+            button.setStrokeColor(ColorStateList.valueOf(activeColor));
+            button.setStrokeWidth(2);
         }
     }
 
@@ -227,4 +244,4 @@ public class PortfolioSetupFragment extends Fragment {
         // اتصال داده تاریخی Yahoo Finance و محاسبات در جلسه بعد اضافه می‌شود
         Toast.makeText(getContext(), R.string.portfolio_coming_soon, Toast.LENGTH_LONG).show();
     }
-          }
+    }
