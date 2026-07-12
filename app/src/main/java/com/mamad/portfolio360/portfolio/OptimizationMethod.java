@@ -28,17 +28,17 @@ public class OptimizationMethod {
                 "monte_carlo",
                 "شبیه‌سازی مونت‌کارلو",
                 "هزاران مسیر تصادفی قیمتی برای برآورد توزیع بازده و ریسک آینده پرتفوی.",
-                false));
+                true));
         list.add(new OptimizationMethod(
                 "stress_test",
                 "آزمون استرس (Stress Test)",
                 "بررسی عملکرد پرتفوی در بحران‌های تاریخی (۲۰۰۸، کرونا، و سایر دوره‌های پرنوسان).",
-                false));
+                true));
         list.add(new OptimizationMethod(
                 "taleb_barbell",
                 "بارِبل طالب (Barbell 90/10)",
                 "۹۰٪ در دارایی‌های فوق‌ایمن و ۱۰٪ در دارایی‌های پرریسک/پرپتانسیل — به سبک نسیم طالب.",
-                false));
+                true));
         return list;
     }
 }
