@@ -40,12 +40,12 @@ public class StrategyMapping {
                         "iron_condor",
                         "آیرون کاندور (Iron Condor)",
                         "با فروش یک استرنگل و خرید بال‌های محافظ، از کم‌نوسانی سود ببرید.",
-                        false));
+                        true));
                 list.add(new StrategyOption(
                         "butterfly",
                         "پروانه‌ای (Butterfly)",
                         "از کم‌نوسانی نزدیک یک قیمت هدف مشخص سود ببرید.",
-                        false));
+                        true));
                 break;
 
             case OUTLOOK_VOLATILE:
