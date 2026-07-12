@@ -13,6 +13,36 @@
         android:padding="20dp">
 
         <TextView
+            android:id="@+id/text_build_version"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="8dp"
+            android:gravity="center"
+            android:text="@string/build_version_tag"
+            android:textColor="@color/blueprint_accent"
+            android:textSize="12sp"
+            android:textStyle="bold" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_debug_options"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            android:text="@string/debug_fetch_options"
+            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+            app:strokeColor="@color/blueprint_accent" />
+
+        <TextView
+            android:id="@+id/text_debug_result"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            android:fontFamily="monospace"
+            android:textColor="@color/blueprint_text"
+            android:textSize="11sp"
+            android:textIsSelectable="true" />
+
+        <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/outlook_asset_label"
@@ -253,34 +283,6 @@
 
         </LinearLayout>
 
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/btn_debug_options"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="24dp"
-            android:text="@string/debug_fetch_options"
-            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
-            app:strokeColor="@color/blueprint_accent" />
-
-        <TextView
-            android:id="@+id/text_debug_result"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="10dp"
-            android:fontFamily="monospace"
-            android:textColor="@color/blueprint_text"
-            android:textSize="11sp"
-            android:textIsSelectable="true" />
-
-        <TextView
-            android:id="@+id/text_build_version"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="30dp"
-            android:gravity="center"
-            android:text="@string/build_version_tag"
-            android:textColor="@color/blueprint_accent"
-            android:textSize="11sp" />
 
     </LinearLayout>
 </ScrollView>
