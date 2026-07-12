@@ -33,16 +33,6 @@
             app:strokeColor="@color/blueprint_accent" />
 
         <TextView
-            android:id="@+id/text_debug_result"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="16dp"
-            android:fontFamily="monospace"
-            android:textColor="@color/blueprint_text"
-            android:textSize="11sp"
-            android:textIsSelectable="true" />
-
-        <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/outlook_asset_label"
