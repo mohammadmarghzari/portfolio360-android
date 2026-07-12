@@ -150,4 +150,38 @@ public class YahooFinanceClient {
         return "https://query1.finance.yahoo.com/v8/finance/chart/" + symbol
                 + "?range=" + range + "&interval=1d";
     }
+
+    public interface MultiHistoryCallback {
+        /** برای هر نماد که موفق بود صدا زده می‌شود؛ در پایان همه (موفق یا نه)، onComplete صدا زده می‌شود. */
+        void onEachSuccess(String symbol, List<HistoricalPoint> points);
+        void onEachError(String symbol, String message);
+        void onComplete();
+    }
+
+    /** داده تاریخی چند نماد را هم‌زمان می‌گیرد و در پایان onComplete را صدا می‌زند. */
+    public static void fetchMultipleHistories(List<String> symbols, String range, MultiHistoryCallback callback) {
+        if (symbols.isEmpty()) {
+            callback.onComplete();
+            return;
+        }
+
+        java.util.concurrent.atomic.AtomicInteger remaining =
+                new java.util.concurrent.atomic.AtomicInteger(symbols.size());
+
+        for (String symbol : symbols) {
+            fetchHistory(symbol, range, new HistoryCallback() {
+                @Override
+                public void onSuccess(String sym, List<HistoricalPoint> points) {
+                    callback.onEachSuccess(sym, points);
+                    if (remaining.decrementAndGet() == 0) callback.onComplete();
+                }
+
+                @Override
+                public void onError(String sym, String message) {
+                    callback.onEachError(sym, message);
+                    if (remaining.decrementAndGet() == 0) callback.onComplete();
+                }
+            });
+        }
+    }
 }
