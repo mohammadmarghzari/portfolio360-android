@@ -30,6 +30,46 @@
             android:textColor="@color/blueprint_accent"
             android:textSize="12sp" />
 
+        <!-- قیمت خرید دارایی پایه (قابل ویرایش) -->
+        <androidx.cardview.widget.CardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="14dp"
+            app:cardBackgroundColor="@color/blueprint_surface"
+            app:cardCornerRadius="12dp"
+            app:cardElevation="0dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:padding="12dp">
+
+                <com.google.android.material.textfield.TextInputLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:hint="@string/label_cost_basis">
+
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/input_cost_basis"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:inputType="numberDecimal" />
+                </com.google.android.material.textfield.TextInputLayout>
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btn_recalculate"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="10dp"
+                    android:text="@string/btn_recalculate"
+                    app:backgroundTint="@color/blueprint_primary" />
+
+            </LinearLayout>
+        </androidx.cardview.widget.CardView>
+
         <!-- نمودار سود و زیان -->
         <androidx.cardview.widget.CardView
             android:layout_width="match_parent"
