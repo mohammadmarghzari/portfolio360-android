@@ -17,6 +17,7 @@ import androidx.fragment.app.Fragment;
 
 import com.google.android.material.button.MaterialButton;
 import com.mamad.portfolio360.R;
+import com.mamad.portfolio360.network.YahooFinanceClient;
 
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -60,6 +61,10 @@ public class PortfolioSetupFragment extends Fragment {
 
         MaterialButton runButton = view.findViewById(R.id.btn_run_analysis);
         runButton.setOnClickListener(v -> onRunClicked());
+
+        MaterialButton yahooTestButton = view.findViewById(R.id.btn_test_yahoo);
+        TextView yahooResult = view.findViewById(R.id.yahoo_debug_result);
+        yahooTestButton.setOnClickListener(v -> testYahoo(yahooResult));
 
         return view;
     }
@@ -233,6 +238,26 @@ public class PortfolioSetupFragment extends Fragment {
         }
     }
 
+    // ---------- تست دیباگ Yahoo Finance ----------
+
+    private void testYahoo(TextView resultView) {
+        resultView.setText(R.string.debug_fetching);
+
+        YahooFinanceClient.testFetch("AAPL", new YahooFinanceClient.RawCallback() {
+            @Override
+            public void onSuccess(int httpCode, String rawBodySnippet) {
+                if (!isAdded()) return;
+                resultView.setText("HTTP " + httpCode + "\n\n" + rawBodySnippet);
+            }
+
+            @Override
+            public void onError(String message) {
+                if (!isAdded()) return;
+                resultView.setText("خطا: " + message);
+            }
+        });
+    }
+
     // ---------- اجرا ----------
 
     private void onRunClicked() {
@@ -244,4 +269,4 @@ public class PortfolioSetupFragment extends Fragment {
         // اتصال داده تاریخی Yahoo Finance و محاسبات در جلسه بعد اضافه می‌شود
         Toast.makeText(getContext(), R.string.portfolio_coming_soon, Toast.LENGTH_LONG).show();
     }
-    }
+}
