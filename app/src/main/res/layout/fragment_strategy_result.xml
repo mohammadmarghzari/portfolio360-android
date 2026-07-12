@@ -32,6 +32,7 @@
 
         <!-- قیمت خرید دارایی پایه (قابل ویرایش) -->
         <androidx.cardview.widget.CardView
+            android:id="@+id/cost_basis_card"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="14dp"
