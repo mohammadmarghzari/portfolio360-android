@@ -10,8 +10,8 @@ android {
         applicationId "com.mamad.portfolio360"
         minSdk 24
         targetSdk 34
-        versionCode 1
-        versionName "0.1-skeleton"
+        versionCode 8
+        versionName "0.8-session8-debug"
     }
 
     buildTypes {
@@ -35,6 +35,7 @@ dependencies {
     implementation 'com.google.android.material:material:1.12.0'
     implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
     implementation 'androidx.viewpager2:viewpager2:1.1.0'
+    implementation 'androidx.cardview:cardview:1.0.0'
 
     // شبکه (برای اتصال به yfinance-proxy / Derive.xyz API)
     implementation 'com.squareup.okhttp3:okhttp:4.12.0'
