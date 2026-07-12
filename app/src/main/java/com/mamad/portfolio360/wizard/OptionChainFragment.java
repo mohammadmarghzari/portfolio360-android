@@ -36,6 +36,24 @@ import java.util.TreeSet;
  */
 public class OptionChainFragment extends Fragment {
 
+    private static final String ARG_SELECT_FOR = "select_for";
+
+    /** حالت عادی: فقط نمایش زنجیره */
+    public static OptionChainFragment newInstance() {
+        return new OptionChainFragment();
+    }
+
+    /** حالت انتخاب: کاربر یک قرارداد را برای استراتژی مشخص انتخاب می‌کند */
+    public static OptionChainFragment newInstanceForStrategy(String strategyKey) {
+        OptionChainFragment f = new OptionChainFragment();
+        Bundle b = new Bundle();
+        b.putString(ARG_SELECT_FOR, strategyKey);
+        f.setArguments(b);
+        return f;
+    }
+
+    private String selectForStrategy;   // null یعنی حالت عادی
+
     private TextView status;
     private LinearLayout expiryContainer;
     private LinearLayout chainContainer;
@@ -54,6 +72,20 @@ public class OptionChainFragment extends Fragment {
         status = view.findViewById(R.id.chain_status);
         expiryContainer = view.findViewById(R.id.expiry_container);
         chainContainer = view.findViewById(R.id.chain_container);
+
+        if (getArguments() != null) {
+            selectForStrategy = getArguments().getString(ARG_SELECT_FOR, null);
+        }
+
+        TextView hint = view.findViewById(R.id.chain_hint);
+        if (selectForStrategy != null) {
+            hint.setVisibility(View.VISIBLE);
+            hint.setText(isPutStrategy()
+                    ? R.string.chain_hint_pick_put
+                    : R.string.chain_hint_pick_call);
+        } else {
+            hint.setVisibility(View.GONE);
+        }
 
         loadSpot();
         loadChain();
@@ -188,6 +220,14 @@ public class OptionChainFragment extends Fragment {
             bindSide(row, R.id.put_price, R.id.put_greeks, put);
 
             row.setTag(new OptionContract[]{call, put});
+
+            if (selectForStrategy != null) {
+                OptionContract target = isPutStrategy() ? put : call;
+                if (target != null) {
+                    row.setOnClickListener(v -> onContractPicked(target));
+                }
+            }
+
             chainContainer.addView(row);
         }
 
@@ -261,8 +301,34 @@ public class OptionChainFragment extends Fragment {
         return sdf.format(new Date(epochSeconds * 1000L));
     }
 
+    private boolean isPutStrategy() {
+        return "protective_put".equals(selectForStrategy);
+    }
+
+    private void onContractPicked(OptionContract c) {
+        if (Double.isNaN(c.markPrice)) {
+            android.widget.Toast.makeText(getContext(),
+                    R.string.chain_no_price, android.widget.Toast.LENGTH_SHORT).show();
+            return;
+        }
+        if (Double.isNaN(spotPrice)) {
+            android.widget.Toast.makeText(getContext(),
+                    R.string.chain_no_spot, android.widget.Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        StrategyResultFragment fragment = StrategyResultFragment.newInstance(
+                selectForStrategy, c.instrumentName, c.strike, c.markPrice, spotPrice);
+
+        requireActivity().getSupportFragmentManager()
+                .beginTransaction()
+                .replace(R.id.fragment_container, fragment)
+                .addToBackStack(null)
+                .commit();
+    }
+
     private String fmtStrike(double v) { return String.format(Locale.US, "%,.0f", v); }
     private String fmt2(double v) { return Double.isNaN(v) ? "—" : String.format(Locale.US, "%.2f", v); }
     private String fmt3(double v) { return Double.isNaN(v) ? "—" : String.format(Locale.US, "%.3f", v); }
     private String fmt4(double v) { return Double.isNaN(v) ? "—" : String.format(Locale.US, "%.4f", v); }
-}
+                                                     }
