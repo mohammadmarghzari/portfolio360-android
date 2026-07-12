@@ -19,12 +19,15 @@ import com.mamad.portfolio360.network.OptionContract;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 import java.util.TreeSet;
 
 /**
@@ -33,17 +36,27 @@ import java.util.TreeSet;
  *   - چپ: قراردادهای کال با گریک‌ها
  *   - وسط: قیمت اعمال (Strike)
  *   - راست: قراردادهای پوت با گریک‌ها
+ *
+ * برای استراتژی‌های دو-پایه (مثل بول کال اسپرد)، این صفحه دوبار پشت سر هم
+ * باز می‌شود: یک‌بار برای پایه اول، یک‌بار برای پایه دوم.
  */
 public class OptionChainFragment extends Fragment {
 
     private static final String ARG_SELECT_FOR = "select_for";
+    private static final String ARG_LEG1_INSTRUMENT = "leg1_instrument";
+    private static final String ARG_LEG1_STRIKE = "leg1_strike";
+    private static final String ARG_LEG1_PREMIUM = "leg1_premium";
+
+    /** استراتژی‌هایی که نیاز به انتخاب دو قرارداد دارند. */
+    private static final Set<String> TWO_LEG_STRATEGIES = new HashSet<>(
+            Arrays.asList("bull_call_spread"));
 
     /** حالت عادی: فقط نمایش زنجیره */
     public static OptionChainFragment newInstance() {
         return new OptionChainFragment();
     }
 
-    /** حالت انتخاب: کاربر یک قرارداد را برای استراتژی مشخص انتخاب می‌کند */
+    /** حالت انتخاب: کاربر یک (یا اولین) قرارداد را برای استراتژی مشخص انتخاب می‌کند */
     public static OptionChainFragment newInstanceForStrategy(String strategyKey) {
         OptionChainFragment f = new OptionChainFragment();
         Bundle b = new Bundle();
@@ -52,7 +65,24 @@ public class OptionChainFragment extends Fragment {
         return f;
     }
 
+    /** حالت انتخاب پایه دوم، با اطلاعات پایه اول که قبلاً انتخاب شده. */
+    public static OptionChainFragment newInstanceForSecondLeg(
+            String strategyKey, String leg1Instrument, double leg1Strike, double leg1Premium) {
+        OptionChainFragment f = new OptionChainFragment();
+        Bundle b = new Bundle();
+        b.putString(ARG_SELECT_FOR, strategyKey);
+        b.putString(ARG_LEG1_INSTRUMENT, leg1Instrument);
+        b.putDouble(ARG_LEG1_STRIKE, leg1Strike);
+        b.putDouble(ARG_LEG1_PREMIUM, leg1Premium);
+        f.setArguments(b);
+        return f;
+    }
+
     private String selectForStrategy;   // null یعنی حالت عادی
+    private boolean isSecondLeg;
+    private String leg1Instrument;
+    private double leg1Strike;
+    private double leg1Premium;
 
     private TextView status;
     private LinearLayout expiryContainer;
@@ -75,14 +105,18 @@ public class OptionChainFragment extends Fragment {
 
         if (getArguments() != null) {
             selectForStrategy = getArguments().getString(ARG_SELECT_FOR, null);
+            if (getArguments().containsKey(ARG_LEG1_INSTRUMENT)) {
+                isSecondLeg = true;
+                leg1Instrument = getArguments().getString(ARG_LEG1_INSTRUMENT, "");
+                leg1Strike = getArguments().getDouble(ARG_LEG1_STRIKE);
+                leg1Premium = getArguments().getDouble(ARG_LEG1_PREMIUM);
+            }
         }
 
         TextView hint = view.findViewById(R.id.chain_hint);
         if (selectForStrategy != null) {
             hint.setVisibility(View.VISIBLE);
-            hint.setText(isPutStrategy()
-                    ? R.string.chain_hint_pick_put
-                    : R.string.chain_hint_pick_call);
+            hint.setText(buildHintText());
         } else {
             hint.setVisibility(View.GONE);
         }
@@ -91,6 +125,20 @@ public class OptionChainFragment extends Fragment {
         loadChain();
 
         return view;
+    }
+
+    private String buildHintText() {
+        if (isTwoLegStrategy() && isSecondLeg) {
+            return getString(R.string.chain_hint_pick_second_call, fmtStrike(leg1Strike));
+        }
+        if (isTwoLegStrategy()) {
+            return getString(R.string.chain_hint_pick_first_call);
+        }
+        return getString(isPutStrategy() ? R.string.chain_hint_pick_put : R.string.chain_hint_pick_call);
+    }
+
+    private boolean isTwoLegStrategy() {
+        return TWO_LEG_STRATEGIES.contains(selectForStrategy);
     }
 
     private void loadSpot() {
@@ -114,7 +162,6 @@ public class OptionChainFragment extends Fragment {
                 allContracts.clear();
                 allContracts.addAll(contracts);
 
-                // تاریخ‌های سررسید یکتا و مرتب
                 TreeSet<Long> set = new TreeSet<>();
                 for (OptionContract c : contracts) set.add(c.expirySeconds);
                 expiries.clear();
@@ -138,7 +185,6 @@ public class OptionChainFragment extends Fragment {
 
     private void buildExpiryChips() {
         expiryContainer.removeAllViews();
-        LayoutInflater inflater = LayoutInflater.from(requireContext());
 
         for (Long expiry : expiries) {
             MaterialButton chip = new MaterialButton(requireContext(), null,
@@ -177,7 +223,6 @@ public class OptionChainFragment extends Fragment {
         }
     }
 
-    /** ردیف‌ها را می‌سازد و سپس گریک‌های همان سررسید را واکشی می‌کند. */
     private void renderChain() {
         chainContainer.removeAllViews();
 
@@ -186,7 +231,6 @@ public class OptionChainFragment extends Fragment {
             if (c.expirySeconds == selectedExpiry) forExpiry.add(c);
         }
 
-        // گروه‌بندی بر اساس استرایک
         TreeSet<Double> strikeSet = new TreeSet<>();
         for (OptionContract c : forExpiry) strikeSet.add(c.strike);
 
@@ -208,7 +252,6 @@ public class OptionChainFragment extends Fragment {
             TextView strikeView = row.findViewById(R.id.strike_value);
             strikeView.setText(fmtStrike(strike));
 
-            // نزدیک‌ترین استرایک به قیمت لحظه‌ای را برجسته کن
             if (!Double.isNaN(spotPrice) && isNearSpot(strike, strikes)) {
                 row.setBackgroundColor(Color.parseColor("#1A3E7CB1"));
             }
@@ -219,19 +262,23 @@ public class OptionChainFragment extends Fragment {
             bindSide(row, R.id.call_price, R.id.call_greeks, call);
             bindSide(row, R.id.put_price, R.id.put_greeks, put);
 
+            // در حالت پایه دوم، همان قرارداد پایه اول را قابل انتخاب مجدد نکن
+            boolean isSameAsLeg1 = isSecondLeg && call != null && call.instrumentName.equals(leg1Instrument);
+
             row.setTag(new OptionContract[]{call, put});
 
-            if (selectForStrategy != null) {
+            if (selectForStrategy != null && !isSameAsLeg1) {
                 OptionContract target = isPutStrategy() ? put : call;
                 if (target != null) {
                     row.setOnClickListener(v -> onContractPicked(target));
                 }
+            } else if (isSameAsLeg1) {
+                row.setBackgroundColor(Color.parseColor("#332E7CB1"));
             }
 
             chainContainer.addView(row);
         }
 
-        // حالا گریک‌های واقعی را برای همین سررسید بگیر
         status.setText(getString(R.string.chain_loading_greeks, forExpiry.size()));
 
         DeriveApiClient.fetchGreeksFor(forExpiry, debugSample -> {
@@ -241,7 +288,6 @@ public class OptionChainFragment extends Fragment {
         });
     }
 
-    /** بعد از رسیدن گریک‌ها، متن ردیف‌ها را به‌روزرسانی می‌کند. */
     private void refreshRows() {
         for (int i = 0; i < chainContainer.getChildCount(); i++) {
             View row = chainContainer.getChildAt(i);
@@ -317,6 +363,33 @@ public class OptionChainFragment extends Fragment {
             return;
         }
 
+        if (isTwoLegStrategy() && !isSecondLeg) {
+            OptionChainFragment secondLeg = OptionChainFragment.newInstanceForSecondLeg(
+                    selectForStrategy, c.instrumentName, c.strike, c.markPrice);
+
+            requireActivity().getSupportFragmentManager()
+                    .beginTransaction()
+                    .replace(R.id.fragment_container, secondLeg)
+                    .addToBackStack(null)
+                    .commit();
+            return;
+        }
+
+        if (isTwoLegStrategy() && isSecondLeg) {
+            StrategyResultFragment fragment = StrategyResultFragment.newInstanceTwoLeg(
+                    selectForStrategy,
+                    leg1Instrument, leg1Strike, leg1Premium,
+                    c.instrumentName, c.strike, c.markPrice,
+                    spotPrice);
+
+            requireActivity().getSupportFragmentManager()
+                    .beginTransaction()
+                    .replace(R.id.fragment_container, fragment)
+                    .addToBackStack(null)
+                    .commit();
+            return;
+        }
+
         StrategyResultFragment fragment = StrategyResultFragment.newInstance(
                 selectForStrategy, c.instrumentName, c.strike, c.markPrice, spotPrice);
 
@@ -331,4 +404,4 @@ public class OptionChainFragment extends Fragment {
     private String fmt2(double v) { return Double.isNaN(v) ? "—" : String.format(Locale.US, "%.2f", v); }
     private String fmt3(double v) { return Double.isNaN(v) ? "—" : String.format(Locale.US, "%.3f", v); }
     private String fmt4(double v) { return Double.isNaN(v) ? "—" : String.format(Locale.US, "%.4f", v); }
-                                                     }
+}
