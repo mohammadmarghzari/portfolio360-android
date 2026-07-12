@@ -62,7 +62,7 @@
     <string name="outlook_asset_loading">در حال دریافت قیمت زنده ETH از Derive.xyz…</string>
     <string name="outlook_asset_live">ETH — %1$s دلار (زنده از Derive.xyz)</string>
     <string name="outlook_asset_error">ETH — دریافت قیمت زنده ناموفق بود</string>
-    <string name="debug_fetch_options">تست دریافت آپشن‌های واقعی (دیباگ)</string>
+    <string name="debug_fetch_options">مشاهده قراردادهای آپشن ETH</string>
     <string name="debug_fetching">در حال دریافت…</string>
     <string name="build_version_tag">نسخه build: SESSION-8-DEBUG-TAG</string>
     <string name="outlook_question">دیدگاه شما نسبت به بازار چیست؟</string>
@@ -75,4 +75,15 @@
     <string name="strategy_list_title">یک استراتژی انتخاب کنید</string>
     <string name="strategy_coming_soon">به‌زودی</string>
     <string name="strategy_coming_soon_message">این استراتژی هنوز پیاده‌سازی نشده — در جلسات بعدی اضافه می‌شود.</string>
+    <string name="chain_loading">در حال دریافت قراردادها از Derive.xyz…</string>
+    <string name="chain_loading_greeks">در حال دریافت گریک‌های %1$d قرارداد…</string>
+    <string name="chain_empty">قراردادی یافت نشد.</string>
+    <string name="chain_error">خطا: %1$s</string>
+    <string name="chain_spot">ETH: %1$s دلار</string>
+    <string name="chain_expiry_label">سررسید: %1$s</string>
+    <string name="chain_calls">کال (Call)</string>
+    <string name="chain_puts">پوت (Put)</string>
+    <string name="chain_strike">اعمال</string>
+    <string name="chain_greek_header">Δ / Γ / V / Θ</string>
+    <string name="chain_greeks_line">%1$s / %2$s / %3$s / %4$s</string>
 </resources>
