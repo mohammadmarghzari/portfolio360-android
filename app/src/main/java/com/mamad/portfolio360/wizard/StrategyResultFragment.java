@@ -127,6 +127,8 @@ public class StrategyResultFragment extends Fragment {
         String title;
         if ("long_call".equals(strategyKey)) title = getString(R.string.strategy_long_call_title);
         else if ("bull_call_spread".equals(strategyKey)) title = getString(R.string.strategy_bull_spread_title);
+        else if ("long_straddle".equals(strategyKey)) title = getString(R.string.strategy_straddle_title);
+        else if ("long_strangle".equals(strategyKey)) title = getString(R.string.strategy_strangle_title);
         else if ("protective_put".equals(strategyKey)) title = getString(R.string.strategy_pp_title);
         else title = getString(R.string.strategy_cc_title);
         ((TextView) view.findViewById(R.id.result_strategy_name)).setText(title);
@@ -142,7 +144,8 @@ public class StrategyResultFragment extends Fragment {
     }
 
     private void recalculate(View view) {
-        boolean isPureOption = "long_call".equals(strategyKey) || "bull_call_spread".equals(strategyKey);
+        boolean isPureOption = "long_call".equals(strategyKey) || "bull_call_spread".equals(strategyKey)
+                || "long_straddle".equals(strategyKey) || "long_strangle".equals(strategyKey);
 
         View costBasisCard = view.findViewById(R.id.cost_basis_card);
         if (costBasisCard != null) {
@@ -158,6 +161,19 @@ public class StrategyResultFragment extends Fragment {
         List<PayoffEngine.Leg> legs;
         if ("bull_call_spread".equals(strategyKey)) {
             legs = PayoffEngine.bullCallSpread(strike, premium, strike2, premium2, 1);
+        } else if ("long_straddle".equals(strategyKey)) {
+            // پایه اول و دوم می‌توانند به هر ترتیبی کال/پوت باشند؛ بر اساس اسم قرارداد تشخیص می‌دهیم
+            boolean firstIsCall = instrumentName.endsWith("-C");
+            double callPremium = firstIsCall ? premium : premium2;
+            double putPremium = firstIsCall ? premium2 : premium;
+            legs = PayoffEngine.longStraddle(strike, callPremium, putPremium, 1);
+        } else if ("long_strangle".equals(strategyKey)) {
+            boolean firstIsCall = instrumentName.endsWith("-C");
+            double callStrike = firstIsCall ? strike : strike2;
+            double callPremium = firstIsCall ? premium : premium2;
+            double putStrike = firstIsCall ? strike2 : strike;
+            double putPremium = firstIsCall ? premium2 : premium;
+            legs = PayoffEngine.longStrangle(putStrike, putPremium, callStrike, callPremium, 1);
         } else if ("long_call".equals(strategyKey)) {
             legs = PayoffEngine.longCall(strike, premium, 1);
         } else if ("protective_put".equals(strategyKey)) {
@@ -316,6 +332,9 @@ public class StrategyResultFragment extends Fragment {
                 return premium;                       // دریافت پرمیوم فروش کال
             case "bull_call_spread":
                 return -(premium - premium2);          // پرداخت خالص: خرید گران‌تر منهای فروش
+            case "long_straddle":
+            case "long_strangle":
+                return -(premium + premium2);           // پرداخت هر دو پرمیوم
             case "long_call":
             case "protective_put":
             default:
@@ -358,6 +377,21 @@ public class StrategyResultFragment extends Fragment {
             double netDebit = Math.abs(netPremiumSigned());
             text = getString(R.string.explain_bull_call_spread,
                     fmt(lowerStrike), fmt(higherStrike), fmt(netDebit), fmt(r.maxProfit), be);
+        } else if ("long_straddle".equals(strategyKey)) {
+            double totalCost = Math.abs(netPremiumSigned());
+            String beText = r.breakevens.size() >= 2
+                    ? (fmt(r.breakevens.get(0)) + " و " + fmt(r.breakevens.get(1)))
+                    : be;
+            text = getString(R.string.explain_long_straddle, fmt(strike), fmt(totalCost), beText);
+        } else if ("long_strangle".equals(strategyKey)) {
+            double lowerStrike = Math.min(strike, strike2);
+            double higherStrike = Math.max(strike, strike2);
+            double totalCost = Math.abs(netPremiumSigned());
+            String beText = r.breakevens.size() >= 2
+                    ? (fmt(r.breakevens.get(0)) + " و " + fmt(r.breakevens.get(1)))
+                    : be;
+            text = getString(R.string.explain_long_strangle,
+                    fmt(lowerStrike), fmt(higherStrike), fmt(totalCost), beText);
         } else if ("long_call".equals(strategyKey)) {
             text = getString(R.string.explain_long_call, fmt(strike), fmt(premium), be);
         } else if ("protective_put".equals(strategyKey)) {
