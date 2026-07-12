@@ -9,6 +9,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -22,6 +23,8 @@ import com.github.mikephil.charting.data.Entry;
 import com.github.mikephil.charting.data.LineData;
 import com.github.mikephil.charting.data.LineDataSet;
 import com.github.mikephil.charting.formatter.ValueFormatter;
+import com.google.android.material.button.MaterialButton;
+import com.google.android.material.textfield.TextInputEditText;
 import com.mamad.portfolio360.R;
 import com.mamad.portfolio360.calc.PayoffEngine;
 
@@ -30,8 +33,8 @@ import java.util.List;
 import java.util.Locale;
 
 /**
- * صفحه نتیجه استراتژی: نمودار سود/زیان در سررسید،
- * همراه با شاخص‌های کلیدی و مقایسه با حالت «بدون استراتژی».
+ * صفحه نتیجه استراتژی: نمودار تعاملی سود/زیان در سررسید،
+ * با قیمت خرید دارایی قابل‌ویرایش توسط کاربر.
  */
 public class StrategyResultFragment extends Fragment {
 
@@ -41,13 +44,19 @@ public class StrategyResultFragment extends Fragment {
     private static final String ARG_PREMIUM = "premium";
     private static final String ARG_SPOT = "spot";
 
-    // رنگ‌های نمودار (تم تیره حرفه‌ای)
     private static final int COLOR_STRATEGY = Color.parseColor("#38BDF8");
     private static final int COLOR_BASELINE = Color.parseColor("#64748B");
-    private static final int COLOR_PROFIT = Color.parseColor("#22C55E");
-    private static final int COLOR_LOSS = Color.parseColor("#EF4444");
     private static final int COLOR_GRID = Color.parseColor("#1E293B");
     private static final int COLOR_AXIS_TEXT = Color.parseColor("#94A3B8");
+
+    private String strategyKey;
+    private String instrumentName;
+    private double strike;
+    private double premium;
+    private double spot;
+
+    private LineChart chart;
+    private TextInputEditText inputCostBasis;
 
     public static StrategyResultFragment newInstance(String strategyKey, String instrumentName,
                                                       double strike, double premium, double spot) {
@@ -69,45 +78,62 @@ public class StrategyResultFragment extends Fragment {
         View view = inflater.inflate(R.layout.fragment_strategy_result, container, false);
 
         Bundle args = requireArguments();
-        String strategyKey = args.getString(ARG_STRATEGY, "");
-        String instrument = args.getString(ARG_INSTRUMENT, "");
-        double strike = args.getDouble(ARG_STRIKE);
-        double premium = args.getDouble(ARG_PREMIUM);
-        double spot = args.getDouble(ARG_SPOT);
+        strategyKey = args.getString(ARG_STRATEGY, "");
+        instrumentName = args.getString(ARG_INSTRUMENT, "");
+        strike = args.getDouble(ARG_STRIKE);
+        premium = args.getDouble(ARG_PREMIUM);
+        spot = args.getDouble(ARG_SPOT);
 
-        // قیمت خرید دارایی را برابر قیمت لحظه‌ای فرض می‌کنیم
-        double costBasis = spot;
+        chart = view.findViewById(R.id.payoff_chart);
+        inputCostBasis = view.findViewById(R.id.input_cost_basis);
 
-        List<PayoffEngine.Leg> legs;
-        String title;
+        // پیش‌فرض قیمت خرید = قیمت لحظه‌ای فعلی؛ کاربر می‌تواند تغییر دهد
+        inputCostBasis.setText(String.format(Locale.US, "%.2f", spot));
 
-        switch (strategyKey) {
-            case "protective_put":
-                legs = PayoffEngine.protectivePut(costBasis, strike, premium, 1);
-                title = getString(R.string.strategy_pp_title);
-                break;
-            case "covered_call":
-            default:
-                legs = PayoffEngine.coveredCall(costBasis, strike, premium, 1);
-                title = getString(R.string.strategy_cc_title);
-                break;
-        }
-
-        PayoffEngine.Result result = PayoffEngine.compute(legs, spot, 220);
-        List<PayoffEngine.Leg> baseline = PayoffEngine.spotOnly(costBasis, 1);
-
+        String title = "protective_put".equals(strategyKey)
+                ? getString(R.string.strategy_pp_title)
+                : getString(R.string.strategy_cc_title);
         ((TextView) view.findViewById(R.id.result_strategy_name)).setText(title);
-        ((TextView) view.findViewById(R.id.result_contract_name)).setText(instrument);
+        ((TextView) view.findViewById(R.id.result_contract_name)).setText(instrumentName);
 
-        setupChart(view.findViewById(R.id.payoff_chart), result, baseline, spot);
-        bindKpis(view, result, premium, strategyKey);
-        bindExplanation(view, result, strategyKey, strike, premium, spot);
+        MaterialButton recalcButton = view.findViewById(R.id.btn_recalculate);
+        recalcButton.setOnClickListener(v -> recalculate(view));
+
+        recalculate(view);
 
         return view;
     }
 
-    private void setupChart(LineChart chart, PayoffEngine.Result result,
-                             List<PayoffEngine.Leg> baselineLegs, double spot) {
+    private void recalculate(View view) {
+        double costBasis = parseCostBasis();
+        if (Double.isNaN(costBasis) || costBasis <= 0) {
+            Toast.makeText(getContext(), R.string.input_error, Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        List<PayoffEngine.Leg> legs = "protective_put".equals(strategyKey)
+                ? PayoffEngine.protectivePut(costBasis, strike, premium, 1)
+                : PayoffEngine.coveredCall(costBasis, strike, premium, 1);
+
+        PayoffEngine.Result result = PayoffEngine.compute(legs, spot, 220);
+        List<PayoffEngine.Leg> baseline = PayoffEngine.spotOnly(costBasis, 1);
+
+        setupChart(result, baseline, costBasis);
+        bindKpis(view, result, premium, strategyKey);
+        bindExplanation(view, result, strategyKey, strike, premium);
+    }
+
+    private double parseCostBasis() {
+        String text = inputCostBasis.getText() != null ? inputCostBasis.getText().toString().trim() : "";
+        if (text.isEmpty()) return Double.NaN;
+        try {
+            return Double.parseDouble(text);
+        } catch (NumberFormatException e) {
+            return Double.NaN;
+        }
+    }
+
+    private void setupChart(PayoffEngine.Result result, List<PayoffEngine.Leg> baselineLegs, double costBasis) {
 
         List<Entry> strategyEntries = new ArrayList<>();
         List<Entry> baselineEntries = new ArrayList<>();
@@ -118,7 +144,6 @@ public class StrategyResultFragment extends Fragment {
             baselineEntries.add(new Entry(x, (float) PayoffEngine.totalPayoff(baselineLegs, result.prices[i])));
         }
 
-        // منحنی استراتژی — با پرکردن گرادیانی
         LineDataSet strategySet = new LineDataSet(strategyEntries, "");
         strategySet.setColor(COLOR_STRATEGY);
         strategySet.setLineWidth(2.6f);
@@ -127,8 +152,11 @@ public class StrategyResultFragment extends Fragment {
         strategySet.setMode(LineDataSet.Mode.LINEAR);
         strategySet.setDrawFilled(true);
         strategySet.setFillAlpha(70);
+        strategySet.setHighlightEnabled(true);          // فقط این خط قابل لمس/هایلایت است
+        strategySet.setDrawHorizontalHighlightIndicator(false);
+        strategySet.setHighlightLineWidth(1f);
+        strategySet.setHighLightColor(Color.parseColor("#64748B"));
 
-        strategySet.setFillFormatter((dataSet, provider) -> 0f);
         strategySet.setFillDrawable(new android.graphics.drawable.Drawable() {
             @Override public void draw(@NonNull android.graphics.Canvas canvas) {
                 Paint paint = new Paint();
@@ -148,7 +176,6 @@ public class StrategyResultFragment extends Fragment {
             @Override public int getOpacity() { return android.graphics.PixelFormat.TRANSLUCENT; }
         });
 
-        // منحنی مرجع (بدون استراتژی) — خط‌چین خاکستری
         LineDataSet baselineSet = new LineDataSet(baselineEntries, "");
         baselineSet.setColor(COLOR_BASELINE);
         baselineSet.setLineWidth(1.4f);
@@ -156,18 +183,22 @@ public class StrategyResultFragment extends Fragment {
         baselineSet.setDrawValues(false);
         baselineSet.enableDashedLine(12f, 8f, 0f);
         baselineSet.setDrawFilled(false);
+        baselineSet.setHighlightEnabled(false);          // این خط قابل لمس نیست
 
         chart.setData(new LineData(baselineSet, strategySet));
 
-        // ظاهر
         chart.getDescription().setEnabled(false);
         chart.getLegend().setEnabled(false);
         chart.setDrawGridBackground(false);
         chart.setBackgroundColor(Color.TRANSPARENT);
-        chart.setExtraOffsets(4, 8, 4, 8);
+        chart.setExtraOffsets(4, 8, 4, 30);
         chart.setTouchEnabled(true);
         chart.setPinchZoom(true);
         chart.setDoubleTapToZoomEnabled(false);
+        chart.setHighlightPerTapEnabled(true);
+        chart.setHighlightPerDragEnabled(true);          // کشیدن انگشت روی نمودار هم کار کند
+
+        chart.setMarker(new PayoffMarkerView(requireContext(), costBasis));
 
         XAxis x = chart.getXAxis();
         x.setPosition(XAxis.XAxisPosition.BOTTOM);
@@ -176,6 +207,7 @@ public class StrategyResultFragment extends Fragment {
         x.setAxisLineColor(COLOR_GRID);
         x.setTextSize(9f);
         x.setLabelCount(5, false);
+        x.removeAllLimitLines();
         x.setValueFormatter(new ValueFormatter() {
             @Override public String getFormattedValue(float value) {
                 return String.format(Locale.US, "%,.0f", value);
@@ -198,7 +230,6 @@ public class StrategyResultFragment extends Fragment {
 
         chart.getAxisRight().setEnabled(false);
 
-        // خط عمودی قیمت لحظه‌ای
         LimitLine spotLine = new LimitLine((float) spot, getString(R.string.chart_spot_label));
         spotLine.setLineColor(Color.parseColor("#FBBF24"));
         spotLine.setLineWidth(1.4f);
@@ -208,7 +239,6 @@ public class StrategyResultFragment extends Fragment {
         spotLine.setLabelPosition(LimitLine.LimitLabelPosition.RIGHT_TOP);
         x.addLimitLine(spotLine);
 
-        // خطوط عمودی نقاط سر به سر
         for (Double be : result.breakevens) {
             LimitLine beLine = new LimitLine(be.floatValue(), getString(R.string.chart_breakeven_label));
             beLine.setLineColor(Color.parseColor("#A78BFA"));
@@ -220,7 +250,7 @@ public class StrategyResultFragment extends Fragment {
             x.addLimitLine(beLine);
         }
 
-        chart.animateX(700);
+        chart.animateX(500);
         chart.invalidate();
     }
 
@@ -230,13 +260,8 @@ public class StrategyResultFragment extends Fragment {
         TextView breakeven = view.findViewById(R.id.kpi_breakeven);
         TextView prem = view.findViewById(R.id.kpi_premium);
 
-        maxProfit.setText(r.profitUnlimited
-                ? getString(R.string.kpi_unlimited)
-                : fmt(r.maxProfit));
-
-        maxLoss.setText(r.lossUnlimited
-                ? getString(R.string.kpi_unlimited_loss)
-                : fmt(r.maxLoss));
+        maxProfit.setText(r.profitUnlimited ? getString(R.string.kpi_unlimited) : fmt(r.maxProfit));
+        maxLoss.setText(r.lossUnlimited ? getString(R.string.kpi_unlimited_loss) : fmt(r.maxLoss));
 
         if (r.breakevens.isEmpty()) {
             breakeven.setText("—");
@@ -254,9 +279,8 @@ public class StrategyResultFragment extends Fragment {
     }
 
     private void bindExplanation(View view, PayoffEngine.Result r, String strategyKey,
-                                  double strike, double premium, double spot) {
+                                  double strike, double premium) {
         TextView tv = view.findViewById(R.id.result_explanation);
-
         String text;
         if ("protective_put".equals(strategyKey)) {
             text = getString(R.string.explain_protective_put,
