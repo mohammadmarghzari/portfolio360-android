@@ -53,12 +53,12 @@ public class StrategyMapping {
                         "long_straddle",
                         "استرادل بلند (Long Straddle)",
                         "با خرید هم‌زمان کال و پوت روی یک قیمت اعمال، از نوسان شدید سود ببرید.",
-                        false));
+                        true));
                 list.add(new StrategyOption(
                         "long_strangle",
                         "استرنگل بلند (Long Strangle)",
                         "با هزینه کمتر، از نوسان شدید قیمت در هر جهتی سود ببرید.",
-                        false));
+                        true));
                 break;
 
             case OUTLOOK_BULLISH:
