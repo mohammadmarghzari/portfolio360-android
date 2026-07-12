@@ -90,9 +90,10 @@ public class StrategyResultFragment extends Fragment {
         // پیش‌فرض قیمت خرید = قیمت لحظه‌ای فعلی؛ کاربر می‌تواند تغییر دهد
         inputCostBasis.setText(String.format(Locale.US, "%.2f", spot));
 
-        String title = "protective_put".equals(strategyKey)
-                ? getString(R.string.strategy_pp_title)
-                : getString(R.string.strategy_cc_title);
+        String title;
+        if ("long_call".equals(strategyKey)) title = getString(R.string.strategy_long_call_title);
+        else if ("protective_put".equals(strategyKey)) title = getString(R.string.strategy_pp_title);
+        else title = getString(R.string.strategy_cc_title);
         ((TextView) view.findViewById(R.id.result_strategy_name)).setText(title);
         ((TextView) view.findViewById(R.id.result_contract_name)).setText(instrumentName);
 
@@ -105,18 +106,34 @@ public class StrategyResultFragment extends Fragment {
     }
 
     private void recalculate(View view) {
-        double costBasis = parseCostBasis();
+        boolean isPureOption = "long_call".equals(strategyKey);
+
+        View costBasisCard = view.findViewById(R.id.cost_basis_card);
+        if (costBasisCard != null) {
+            costBasisCard.setVisibility(isPureOption ? View.GONE : View.VISIBLE);
+        }
+
+        double costBasis = isPureOption ? spot : parseCostBasis();
         if (Double.isNaN(costBasis) || costBasis <= 0) {
             Toast.makeText(getContext(), R.string.input_error, Toast.LENGTH_SHORT).show();
             return;
         }
 
-        List<PayoffEngine.Leg> legs = "protective_put".equals(strategyKey)
-                ? PayoffEngine.protectivePut(costBasis, strike, premium, 1)
-                : PayoffEngine.coveredCall(costBasis, strike, premium, 1);
+        List<PayoffEngine.Leg> legs;
+        if (isPureOption) {
+            legs = PayoffEngine.longCall(strike, premium, 1);
+        } else if ("protective_put".equals(strategyKey)) {
+            legs = PayoffEngine.protectivePut(costBasis, strike, premium, 1);
+        } else {
+            legs = PayoffEngine.coveredCall(costBasis, strike, premium, 1);
+        }
 
         PayoffEngine.Result result = PayoffEngine.compute(legs, spot, 220);
-        List<PayoffEngine.Leg> baseline = PayoffEngine.spotOnly(costBasis, 1);
+
+        // برای استراتژی خالص آپشنی، خط مرجع "بدون استراتژی" یعنی سود صفر (چیزی نگه‌داشته نشده)
+        List<PayoffEngine.Leg> baseline = isPureOption
+                ? new ArrayList<>()
+                : PayoffEngine.spotOnly(costBasis, 1);
 
         setupChart(result, baseline, costBasis);
         bindKpis(view, result, premium, strategyKey);
@@ -282,7 +299,11 @@ public class StrategyResultFragment extends Fragment {
                                   double strike, double premium) {
         TextView tv = view.findViewById(R.id.result_explanation);
         String text;
-        if ("protective_put".equals(strategyKey)) {
+        if ("long_call".equals(strategyKey)) {
+            text = getString(R.string.explain_long_call,
+                    fmt(strike), fmt(premium),
+                    r.breakevens.isEmpty() ? "—" : fmt(r.breakevens.get(0)));
+        } else if ("protective_put".equals(strategyKey)) {
             text = getString(R.string.explain_protective_put,
                     fmt(strike), fmt(premium), fmt(Math.abs(r.maxLoss)),
                     r.breakevens.isEmpty() ? "—" : fmt(r.breakevens.get(0)));
