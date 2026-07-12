@@ -191,4 +191,21 @@ public class PayoffEngine {
         legs.add(new Leg(LegType.CALL, false, higherStrike, higherPremium, qty)); // فروش
         return legs;
     }
+
+    /** استرادل بلند: خرید هم‌زمان کال و پوت روی یک قیمت اعمال مشترک. */
+    public static List<Leg> longStraddle(double strike, double callPremium, double putPremium, double qty) {
+        List<Leg> legs = new ArrayList<>();
+        legs.add(new Leg(LegType.CALL, true, strike, callPremium, qty));
+        legs.add(new Leg(LegType.PUT, true, strike, putPremium, qty));
+        return legs;
+    }
+
+    /** استرنگل بلند: خرید کال با قیمت اعمال بالاتر + خرید پوت با قیمت اعمال پایین‌تر. */
+    public static List<Leg> longStrangle(double putStrike, double putPremium,
+                                          double callStrike, double callPremium, double qty) {
+        List<Leg> legs = new ArrayList<>();
+        legs.add(new Leg(LegType.PUT, true, putStrike, putPremium, qty));
+        legs.add(new Leg(LegType.CALL, true, callStrike, callPremium, qty));
+        return legs;
+    }
 }
