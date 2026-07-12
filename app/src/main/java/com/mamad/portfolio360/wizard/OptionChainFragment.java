@@ -47,6 +47,11 @@ public class OptionChainFragment extends Fragment {
     private static final String ARG_LEG1_STRIKE = "leg1_strike";
     private static final String ARG_LEG1_PREMIUM = "leg1_premium";
 
+    // انباشتگر عمومی برای استراتژی‌های سه/چهارپایه (آیرون کاندور، پروانه‌ای)
+    private static final String ARG_ACC_INSTRUMENTS = "acc_instruments";
+    private static final String ARG_ACC_STRIKES = "acc_strikes";
+    private static final String ARG_ACC_PREMIUMS = "acc_premiums";
+
     /** استراتژی‌هایی که نیاز به انتخاب دو قرارداد دارند. */
     private static final Set<String> TWO_LEG_STRATEGIES = new HashSet<>(
             Arrays.asList("bull_call_spread", "long_strangle"));
@@ -82,11 +87,29 @@ public class OptionChainFragment extends Fragment {
         return f;
     }
 
+    /** ادامه انتخاب برای استراتژی‌های چندپایه عمومی (آیرون کاندور، پروانه‌ای) */
+    public static OptionChainFragment newInstanceForMultiLeg(
+            String strategyKey, ArrayList<String> instruments,
+            ArrayList<Double> strikes, ArrayList<Double> premiums) {
+        OptionChainFragment f = new OptionChainFragment();
+        Bundle b = new Bundle();
+        b.putString(ARG_SELECT_FOR, strategyKey);
+        b.putStringArrayList(ARG_ACC_INSTRUMENTS, instruments);
+        b.putSerializable(ARG_ACC_STRIKES, strikes);
+        b.putSerializable(ARG_ACC_PREMIUMS, premiums);
+        f.setArguments(b);
+        return f;
+    }
+
     private String selectForStrategy;   // null یعنی حالت عادی
     private boolean isSecondLeg;
     private String leg1Instrument;
     private double leg1Strike;
     private double leg1Premium;
+
+    private final List<String> accInstruments = new ArrayList<>();
+    private final List<Double> accStrikes = new ArrayList<>();
+    private final List<Double> accPremiums = new ArrayList<>();
 
     private TextView status;
     private LinearLayout expiryContainer;
@@ -115,6 +138,21 @@ public class OptionChainFragment extends Fragment {
                 leg1Strike = getArguments().getDouble(ARG_LEG1_STRIKE);
                 leg1Premium = getArguments().getDouble(ARG_LEG1_PREMIUM);
             }
+            if (getArguments().containsKey(ARG_ACC_INSTRUMENTS)) {
+                List<String> savedInstruments = getArguments().getStringArrayList(ARG_ACC_INSTRUMENTS);
+                if (savedInstruments != null) accInstruments.addAll(savedInstruments);
+
+                java.io.Serializable savedStrikes = getArguments().getSerializable(ARG_ACC_STRIKES);
+                if (savedStrikes instanceof ArrayList) {
+                    //noinspection unchecked
+                    accStrikes.addAll((ArrayList<Double>) savedStrikes);
+                }
+                java.io.Serializable savedPremiums = getArguments().getSerializable(ARG_ACC_PREMIUMS);
+                if (savedPremiums instanceof ArrayList) {
+                    //noinspection unchecked
+                    accPremiums.addAll((ArrayList<Double>) savedPremiums);
+                }
+            }
         }
 
         TextView hint = view.findViewById(R.id.chain_hint);
@@ -132,6 +170,13 @@ public class OptionChainFragment extends Fragment {
     }
 
     private String buildHintText() {
+        if (MultiLegPlan.isMultiLeg(selectForStrategy)) {
+            List<MultiLegPlan.Step> plan = MultiLegPlan.getPlan(selectForStrategy);
+            int stepIndex = accInstruments.size();
+            if (stepIndex < plan.size()) {
+                return getString(plan.get(stepIndex).hintRes);
+            }
+        }
         if (SAME_ROW_STRATEGIES.contains(selectForStrategy)) {
             return getString(R.string.chain_hint_pick_straddle_row);
         }
@@ -275,21 +320,36 @@ public class OptionChainFragment extends Fragment {
             bindSide(row, R.id.put_price, R.id.put_greeks, put);
 
             // در حالت پایه دوم، همان قرارداد پایه اول را قابل انتخاب مجدد نکن
-            boolean isSameAsLeg1 = isSecondLeg && call != null && call.instrumentName.equals(leg1Instrument);
-
             row.setTag(new OptionContract[]{call, put});
 
-            if (SAME_ROW_STRATEGIES.contains(selectForStrategy)) {
-                if (call != null && put != null) {
-                    row.setOnClickListener(v -> onStraddleRowPicked(call, put));
+            if (MultiLegPlan.isMultiLeg(selectForStrategy)) {
+                List<MultiLegPlan.Step> plan = MultiLegPlan.getPlan(selectForStrategy);
+                int stepIndex = accInstruments.size();
+                if (stepIndex < plan.size()) {
+                    MultiLegPlan.Step step = plan.get(stepIndex);
+                    OptionContract target = step.isCall ? call : put;
+                    boolean alreadyPicked = target != null && accInstruments.contains(target.instrumentName);
+                    if (target != null && !alreadyPicked) {
+                        row.setOnClickListener(v -> onMultiLegContractPicked(target));
+                    } else if (alreadyPicked) {
+                        row.setBackgroundColor(Color.parseColor("#332E7CB1"));
+                    }
                 }
-            } else if (selectForStrategy != null && !isSameAsLeg1) {
-                OptionContract target = isPutStrategy() ? put : call;
-                if (target != null) {
-                    row.setOnClickListener(v -> onContractPicked(target));
+            } else {
+                boolean isSameAsLeg1 = isSecondLeg && call != null && call.instrumentName.equals(leg1Instrument);
+
+                if (SAME_ROW_STRATEGIES.contains(selectForStrategy)) {
+                    if (call != null && put != null) {
+                        row.setOnClickListener(v -> onStraddleRowPicked(call, put));
+                    }
+                } else if (selectForStrategy != null && !isSameAsLeg1) {
+                    OptionContract target = isPutStrategy() ? put : call;
+                    if (target != null) {
+                        row.setOnClickListener(v -> onContractPicked(target));
+                    }
+                } else if (isSameAsLeg1) {
+                    row.setBackgroundColor(Color.parseColor("#332E7CB1"));
                 }
-            } else if (isSameAsLeg1) {
-                row.setBackgroundColor(Color.parseColor("#332E7CB1"));
             }
 
             chainContainer.addView(row);
@@ -367,6 +427,52 @@ public class OptionChainFragment extends Fragment {
         if ("protective_put".equals(selectForStrategy)) return true;
         if ("long_strangle".equals(selectForStrategy) && isSecondLeg) return true; // پایه دوم استرنگل = پوت
         return false;
+    }
+
+    /** یک پایه از استراتژی چندپایه انتخاب شد؛ یا سراغ پایه بعدی برو یا صفحه نتیجه را باز کن. */
+    private void onMultiLegContractPicked(OptionContract c) {
+        if (Double.isNaN(c.markPrice)) {
+            android.widget.Toast.makeText(getContext(),
+                    R.string.chain_no_price, android.widget.Toast.LENGTH_SHORT).show();
+            return;
+        }
+        if (Double.isNaN(spotPrice)) {
+            android.widget.Toast.makeText(getContext(),
+                    R.string.chain_no_spot, android.widget.Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        ArrayList<String> instruments = new ArrayList<>(accInstruments);
+        ArrayList<Double> strikes = new ArrayList<>(accStrikes);
+        ArrayList<Double> premiums = new ArrayList<>(accPremiums);
+
+        instruments.add(c.instrumentName);
+        strikes.add(c.strike);
+        premiums.add(c.markPrice);
+
+        List<MultiLegPlan.Step> plan = MultiLegPlan.getPlan(selectForStrategy);
+
+        if (instruments.size() < plan.size()) {
+            OptionChainFragment next = OptionChainFragment.newInstanceForMultiLeg(
+                    selectForStrategy, instruments, strikes, premiums);
+
+            requireActivity().getSupportFragmentManager()
+                    .beginTransaction()
+                    .replace(R.id.fragment_container, next)
+                    .addToBackStack(null)
+                    .commit();
+            return;
+        }
+
+        // همه پایه‌ها انتخاب شدند
+        StrategyResultFragment fragment = StrategyResultFragment.newInstanceMultiLeg(
+                selectForStrategy, instruments, strikes, premiums, spotPrice);
+
+        requireActivity().getSupportFragmentManager()
+                .beginTransaction()
+                .replace(R.id.fragment_container, fragment)
+                .addToBackStack(null)
+                .commit();
     }
 
     private void onStraddleRowPicked(OptionContract call, OptionContract put) {
