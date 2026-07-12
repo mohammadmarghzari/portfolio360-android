@@ -312,10 +312,21 @@ public class PortfolioSetupFragment extends Fragment {
                     Toast.LENGTH_SHORT).show();
             return;
         }
-        if ("cvar".equals(selectedMethod)) {
-            runCvarAnalysis();
-        } else {
-            Toast.makeText(getContext(), R.string.portfolio_coming_soon, Toast.LENGTH_LONG).show();
+        switch (selectedMethod) {
+            case "cvar":
+                runCvarAnalysis();
+                break;
+            case "monte_carlo":
+                runMonteCarloAnalysis();
+                break;
+            case "stress_test":
+                runStressTestAnalysis();
+                break;
+            case "taleb_barbell":
+                runBarbellAnalysis();
+                break;
+            default:
+                Toast.makeText(getContext(), R.string.portfolio_coming_soon, Toast.LENGTH_LONG).show();
         }
     }
 
@@ -380,6 +391,130 @@ public class PortfolioSetupFragment extends Fragment {
                                 failedNote));
                     }
                 });
+    }
+
+    // ---------- مونت‌کارلو ----------
+
+    private void runMonteCarloAnalysis() {
+        View root = getView();
+        if (root == null) return;
+
+        CardView resultCard = root.findViewById(R.id.cvar_result_card);
+        TextView resultTitle = root.findViewById(R.id.cvar_result_title);
+        TextView resultBody = root.findViewById(R.id.cvar_result_body);
+
+        resultCard.setVisibility(View.VISIBLE);
+        resultTitle.setText(R.string.mc_loading_title);
+        resultBody.setText(getString(R.string.mc_loading_body, selectedSymbols.size()));
+
+        String yahooRange = mapTimeframeToYahooRange(selectedTimeframe);
+        Map<String, List<HistoricalPoint>> histories = new HashMap<>();
+
+        YahooFinanceClient.fetchMultipleHistories(new java.util.ArrayList<>(selectedSymbols), yahooRange,
+                new YahooFinanceClient.MultiHistoryCallback() {
+                    @Override
+                    public void onEachSuccess(String symbol, List<HistoricalPoint> points) {
+                        histories.put(symbol, points);
+                    }
+
+                    @Override
+                    public void onEachError(String symbol, String message) { /* نادیده گرفته می‌شود */ }
+
+                    @Override
+                    public void onComplete() {
+                        if (!isAdded()) return;
+
+                        com.mamad.portfolio360.calc.PortfolioReturns.Aligned aligned =
+                                com.mamad.portfolio360.calc.PortfolioReturns.computeEqualWeighted(histories);
+
+                        if (aligned.dailyReturns.length < 30) {
+                            resultTitle.setText(R.string.cvar_error_title);
+                            resultBody.setText(getString(R.string.cvar_error_insufficient_days, aligned.alignedDays));
+                            return;
+                        }
+
+                        com.mamad.portfolio360.calc.MonteCarloEngine.Result mc =
+                                com.mamad.portfolio360.calc.MonteCarloEngine.simulate(
+                                        aligned.dailyReturns, 252, 3000, 42L);
+
+                        resultTitle.setText(R.string.mc_result_title);
+                        resultBody.setText(String.format(Locale.US, "%s\n%s\n%s\n%s\n%s\n\n%s\n\n%s",
+                                getString(R.string.mc_p5, fmtPct(mc.p5Pct)),
+                                getString(R.string.mc_p25, fmtPct(mc.p25Pct)),
+                                getString(R.string.mc_median, fmtPct(mc.medianPct)),
+                                getString(R.string.mc_p75, fmtPct(mc.p75Pct)),
+                                getString(R.string.mc_p95, fmtPct(mc.p95Pct)),
+                                getString(R.string.mc_prob_loss, fmtPct(mc.probabilityOfLossPct)),
+                                getString(R.string.mc_note)));
+                    }
+                });
+    }
+
+    // ---------- آزمون استرس ----------
+
+    private void runStressTestAnalysis() {
+        View root = getView();
+        if (root == null) return;
+
+        CardView resultCard = root.findViewById(R.id.cvar_result_card);
+        TextView resultTitle = root.findViewById(R.id.cvar_result_title);
+        TextView resultBody = root.findViewById(R.id.cvar_result_body);
+
+        resultCard.setVisibility(View.VISIBLE);
+        resultTitle.setText(R.string.stress_result_title);
+
+        StringBuilder sb = new StringBuilder();
+        for (com.mamad.portfolio360.calc.StressTestEngine.Scenario sc :
+                com.mamad.portfolio360.calc.StressTestEngine.scenarios()) {
+            if (sb.length() > 0) sb.append("\n");
+            sb.append(getString(R.string.stress_scenario_line,
+                    sc.titleFa, sc.periodFa, fmtPct(sc.shockPct)));
+        }
+        sb.append("\n\n").append(getString(R.string.stress_disclaimer));
+
+        resultBody.setText(sb.toString());
+    }
+
+    // ---------- بارِبل طالب ----------
+
+    private void runBarbellAnalysis() {
+        View root = getView();
+        if (root == null) return;
+
+        CardView resultCard = root.findViewById(R.id.cvar_result_card);
+        TextView resultTitle = root.findViewById(R.id.cvar_result_title);
+        TextView resultBody = root.findViewById(R.id.cvar_result_body);
+
+        resultCard.setVisibility(View.VISIBLE);
+        resultTitle.setText(R.string.barbell_result_title);
+
+        BarbellEngine.Result bar = BarbellEngine.compute(selectedSymbols);
+
+        StringBuilder sb = new StringBuilder();
+
+        if (bar.hasSafeBucket) {
+            sb.append(getString(R.string.barbell_safe_bucket_label)).append("\n");
+            for (String s : bar.safeAssets) {
+                sb.append(getString(R.string.barbell_weight_line, s, fmtPct(bar.weightPct.get(s)))).append("\n");
+            }
+        } else {
+            sb.append(getString(R.string.barbell_no_safe_note)).append("\n");
+        }
+
+        sb.append("\n");
+
+        if (bar.hasRiskyBucket) {
+            sb.append(getString(R.string.barbell_risky_bucket_label)).append("\n");
+            for (String s : bar.riskyAssets) {
+                sb.append(getString(R.string.barbell_weight_line, s, fmtPct(bar.weightPct.get(s)))).append("\n");
+            }
+        } else {
+            sb.append(getString(R.string.barbell_no_risky_note)).append("\n");
+        }
+
+        sb.append("\n").append(getString(R.string.barbell_note));
+
+        resultBody.setText(sb.toString());
     }
 
     private String mapTimeframeToYahooRange(String key) {
