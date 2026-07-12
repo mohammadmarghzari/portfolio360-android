@@ -17,10 +17,13 @@ import androidx.fragment.app.Fragment;
 
 import com.google.android.material.button.MaterialButton;
 import com.mamad.portfolio360.R;
+import com.mamad.portfolio360.calc.ReturnStats;
+import com.mamad.portfolio360.network.HistoricalPoint;
 import com.mamad.portfolio360.network.YahooFinanceClient;
 
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
@@ -67,6 +70,40 @@ public class PortfolioSetupFragment extends Fragment {
         yahooTestButton.setOnClickListener(v -> testYahoo(yahooResult));
 
         return view;
+    }
+
+    // ---------- تست دیباگ Yahoo Finance ----------
+
+    private void testYahoo(TextView resultView) {
+        resultView.setText(R.string.debug_fetching);
+
+        YahooFinanceClient.fetchHistory("AAPL", "1y", new YahooFinanceClient.HistoryCallback() {
+            @Override
+            public void onSuccess(String symbol, List<HistoricalPoint> points) {
+                if (!isAdded()) return;
+
+                ReturnStats.Result stats = ReturnStats.compute(points);
+
+                String text = String.format(Locale.US,
+                        "%s — %d نقطه داده دریافت شد\n\n" +
+                        "آخرین قیمت: %.2f$\n" +
+                        "بازده کل بازه: %.2f%%\n" +
+                        "بازده سالانه‌شده: %.2f%%\n" +
+                        "نوسان سالانه‌شده: %.2f%%\n" +
+                        "حداکثر افت (Max Drawdown): %.2f%%",
+                        symbol, stats.dataPoints, stats.latestClose,
+                        stats.totalReturnPct, stats.annualizedReturnPct,
+                        stats.annualizedVolPct, stats.maxDrawdownPct);
+
+                resultView.setText(text);
+            }
+
+            @Override
+            public void onError(String symbol, String message) {
+                if (!isAdded()) return;
+                resultView.setText("خطا (" + symbol + "): " + message);
+            }
+        });
     }
 
     // ---------- دسته‌های دارایی ----------
@@ -236,26 +273,6 @@ public class PortfolioSetupFragment extends Fragment {
 
             container.addView(card);
         }
-    }
-
-    // ---------- تست دیباگ Yahoo Finance ----------
-
-    private void testYahoo(TextView resultView) {
-        resultView.setText(R.string.debug_fetching);
-
-        YahooFinanceClient.testFetch("AAPL", new YahooFinanceClient.RawCallback() {
-            @Override
-            public void onSuccess(int httpCode, String rawBodySnippet) {
-                if (!isAdded()) return;
-                resultView.setText("HTTP " + httpCode + "\n\n" + rawBodySnippet);
-            }
-
-            @Override
-            public void onError(String message) {
-                if (!isAdded()) return;
-                resultView.setText("خطا: " + message);
-            }
-        });
     }
 
     // ---------- اجرا ----------
