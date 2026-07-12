@@ -46,6 +46,9 @@ public class StrategyResultFragment extends Fragment {
     private static final String ARG_INSTRUMENT2 = "instrument2";
     private static final String ARG_STRIKE2 = "strike2";
     private static final String ARG_PREMIUM2 = "premium2";
+    private static final String ARG_MULTI_INSTRUMENTS = "multi_instruments";
+    private static final String ARG_MULTI_STRIKES = "multi_strikes";
+    private static final String ARG_MULTI_PREMIUMS = "multi_premiums";
 
     private static final int COLOR_STRATEGY = Color.parseColor("#38BDF8");
     private static final int COLOR_BASELINE = Color.parseColor("#64748B");
@@ -62,6 +65,11 @@ public class StrategyResultFragment extends Fragment {
     private String instrumentName2;
     private double strike2;
     private double premium2;
+
+    private boolean isMultiLeg;
+    private List<String> multiInstruments;
+    private List<Double> multiStrikes;
+    private List<Double> multiPremiums;
 
     private LineChart chart;
     private TextInputEditText inputCostBasis;
@@ -98,6 +106,20 @@ public class StrategyResultFragment extends Fragment {
         return f;
     }
 
+    public static StrategyResultFragment newInstanceMultiLeg(
+            String strategyKey, ArrayList<String> instruments,
+            ArrayList<Double> strikes, ArrayList<Double> premiums, double spot) {
+        StrategyResultFragment f = new StrategyResultFragment();
+        Bundle b = new Bundle();
+        b.putString(ARG_STRATEGY, strategyKey);
+        b.putStringArrayList(ARG_MULTI_INSTRUMENTS, instruments);
+        b.putSerializable(ARG_MULTI_STRIKES, strikes);
+        b.putSerializable(ARG_MULTI_PREMIUMS, premiums);
+        b.putDouble(ARG_SPOT, spot);
+        f.setArguments(b);
+        return f;
+    }
+
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
@@ -106,16 +128,31 @@ public class StrategyResultFragment extends Fragment {
 
         Bundle args = requireArguments();
         strategyKey = args.getString(ARG_STRATEGY, "");
-        instrumentName = args.getString(ARG_INSTRUMENT, "");
-        strike = args.getDouble(ARG_STRIKE);
-        premium = args.getDouble(ARG_PREMIUM);
         spot = args.getDouble(ARG_SPOT);
 
-        hasSecondLeg = args.containsKey(ARG_INSTRUMENT2);
-        if (hasSecondLeg) {
-            instrumentName2 = args.getString(ARG_INSTRUMENT2, "");
-            strike2 = args.getDouble(ARG_STRIKE2);
-            premium2 = args.getDouble(ARG_PREMIUM2);
+        isMultiLeg = args.containsKey(ARG_MULTI_INSTRUMENTS);
+
+        String contractLabel;
+
+        if (isMultiLeg) {
+            multiInstruments = args.getStringArrayList(ARG_MULTI_INSTRUMENTS);
+            //noinspection unchecked
+            multiStrikes = (List<Double>) args.getSerializable(ARG_MULTI_STRIKES);
+            //noinspection unchecked
+            multiPremiums = (List<Double>) args.getSerializable(ARG_MULTI_PREMIUMS);
+            contractLabel = multiInstruments != null ? String.join("  +  ", multiInstruments) : "";
+        } else {
+            instrumentName = args.getString(ARG_INSTRUMENT, "");
+            strike = args.getDouble(ARG_STRIKE);
+            premium = args.getDouble(ARG_PREMIUM);
+
+            hasSecondLeg = args.containsKey(ARG_INSTRUMENT2);
+            if (hasSecondLeg) {
+                instrumentName2 = args.getString(ARG_INSTRUMENT2, "");
+                strike2 = args.getDouble(ARG_STRIKE2);
+                premium2 = args.getDouble(ARG_PREMIUM2);
+            }
+            contractLabel = hasSecondLeg ? (instrumentName + "  +  " + instrumentName2) : instrumentName;
         }
 
         chart = view.findViewById(R.id.payoff_chart);
@@ -129,10 +166,11 @@ public class StrategyResultFragment extends Fragment {
         else if ("bull_call_spread".equals(strategyKey)) title = getString(R.string.strategy_bull_spread_title);
         else if ("long_straddle".equals(strategyKey)) title = getString(R.string.strategy_straddle_title);
         else if ("long_strangle".equals(strategyKey)) title = getString(R.string.strategy_strangle_title);
+        else if ("iron_condor".equals(strategyKey)) title = getString(R.string.strategy_iron_condor_title);
+        else if ("butterfly".equals(strategyKey)) title = getString(R.string.strategy_butterfly_title);
         else if ("protective_put".equals(strategyKey)) title = getString(R.string.strategy_pp_title);
         else title = getString(R.string.strategy_cc_title);
         ((TextView) view.findViewById(R.id.result_strategy_name)).setText(title);
-        String contractLabel = hasSecondLeg ? (instrumentName + "  +  " + instrumentName2) : instrumentName;
         ((TextView) view.findViewById(R.id.result_contract_name)).setText(contractLabel);
 
         MaterialButton recalcButton = view.findViewById(R.id.btn_recalculate);
@@ -144,6 +182,11 @@ public class StrategyResultFragment extends Fragment {
     }
 
     private void recalculate(View view) {
+        if (isMultiLeg) {
+            recalculateMultiLeg(view);
+            return;
+        }
+
         boolean isPureOption = "long_call".equals(strategyKey) || "bull_call_spread".equals(strategyKey)
                 || "long_straddle".equals(strategyKey) || "long_strangle".equals(strategyKey);
 
@@ -192,6 +235,84 @@ public class StrategyResultFragment extends Fragment {
         setupChart(result, baseline, costBasis);
         bindKpis(view, result, strategyKey);
         bindExplanation(view, result, strategyKey);
+    }
+
+    /** محاسبه و نمایش برای استراتژی‌های چندپایه عمومی (آیرون کاندور، پروانه‌ای). */
+    private void recalculateMultiLeg(View view) {
+        View costBasisCard = view.findViewById(R.id.cost_basis_card);
+        if (costBasisCard != null) costBasisCard.setVisibility(View.GONE);
+
+        List<MultiLegPlan.Step> plan = MultiLegPlan.getPlan(strategyKey);
+        List<PayoffEngine.Leg> legs = new ArrayList<>();
+        double netPremium = 0; // مثبت = دریافتی خالص، منفی = پرداختی خالص
+
+        for (int i = 0; i < plan.size(); i++) {
+            MultiLegPlan.Step step = plan.get(i);
+            double strikeI = multiStrikes.get(i);
+            double premiumI = multiPremiums.get(i);
+
+            legs.add(new PayoffEngine.Leg(
+                    step.isCall ? PayoffEngine.LegType.CALL : PayoffEngine.LegType.PUT,
+                    step.isLong, strikeI, premiumI, step.quantity));
+
+            netPremium += (step.isLong ? -premiumI : premiumI) * step.quantity;
+        }
+
+        PayoffEngine.Result result = PayoffEngine.compute(legs, spot, 220);
+        List<PayoffEngine.Leg> baseline = new ArrayList<>();
+
+        setupChart(result, baseline, spot);
+        bindMultiLegKpis(view, result, netPremium);
+        bindMultiLegExplanation(view, result, netPremium);
+    }
+
+    private void bindMultiLegKpis(View view, PayoffEngine.Result r, double netPremium) {
+        TextView maxProfit = view.findViewById(R.id.kpi_max_profit);
+        TextView maxLoss = view.findViewById(R.id.kpi_max_loss);
+        TextView breakeven = view.findViewById(R.id.kpi_breakeven);
+        TextView prem = view.findViewById(R.id.kpi_premium);
+
+        maxProfit.setText(r.profitUnlimited ? getString(R.string.kpi_unlimited) : fmt(r.maxProfit));
+        maxLoss.setText(r.lossUnlimited ? getString(R.string.kpi_unlimited_loss) : fmt(r.maxLoss));
+
+        if (r.breakevens.isEmpty()) {
+            breakeven.setText("—");
+        } else {
+            StringBuilder sb = new StringBuilder();
+            for (int i = 0; i < r.breakevens.size(); i++) {
+                if (i > 0) sb.append(" / ");
+                sb.append(fmt(r.breakevens.get(i)));
+            }
+            breakeven.setText(sb.toString());
+        }
+
+        prem.setText((netPremium >= 0 ? "+" : "−") + fmt(Math.abs(netPremium)));
+    }
+
+    private void bindMultiLegExplanation(View view, PayoffEngine.Result r, double netPremium) {
+        TextView tv = view.findViewById(R.id.result_explanation);
+
+        String be = r.breakevens.isEmpty() ? "—"
+                : (r.breakevens.size() >= 2
+                    ? (fmt(r.breakevens.get(0)) + " و " + fmt(r.breakevens.get(1)))
+                    : fmt(r.breakevens.get(0)));
+
+        // مرتب‌سازی قیمت‌های اعمال برای نمایش خوانا
+        List<Double> sortedStrikes = new ArrayList<>(multiStrikes);
+        java.util.Collections.sort(sortedStrikes);
+
+        String text;
+        if ("iron_condor".equals(strategyKey)) {
+            text = getString(R.string.explain_iron_condor,
+                    fmt(sortedStrikes.get(0)), fmt(sortedStrikes.get(1)),
+                    fmt(sortedStrikes.get(2)), fmt(sortedStrikes.get(3)),
+                    fmt(Math.abs(netPremium)), be);
+        } else { // butterfly
+            text = getString(R.string.explain_butterfly,
+                    fmt(sortedStrikes.get(0)), fmt(sortedStrikes.get(1)), fmt(sortedStrikes.get(2)),
+                    fmt(Math.abs(netPremium)), fmt(r.maxProfit), be);
+        }
+        tv.setText(text);
     }
 
     private double parseCostBasis() {
