@@ -18,6 +18,19 @@
         android:textStyle="bold"
         android:text="@string/chain_loading" />
 
+    <!-- راهنمای حالت انتخاب -->
+    <TextView
+        android:id="@+id/chain_hint"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingStart="12dp"
+        android:paddingEnd="12dp"
+        android:paddingBottom="8dp"
+        android:gravity="center"
+        android:textColor="@color/blueprint_accent"
+        android:textSize="12sp"
+        android:visibility="gone" />
+
     <!-- انتخاب تاریخ سررسید -->
     <HorizontalScrollView
         android:id="@+id/expiry_scroll"
