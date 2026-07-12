@@ -21,6 +21,7 @@
     <string name="label_volatility">نوسان ضمنی (٪ سالانه)</string>
     <string name="label_risk_free_rate">نرخ بهره بدون ریسک (٪)</string>
     <string name="btn_calculate">محاسبه</string>
+    <string name="btn_recalculate">به‌روزرسانی</string>
     <string name="results_title">نتایج</string>
 
     <string name="result_call_price">قیمت کال: %1$s</string>
