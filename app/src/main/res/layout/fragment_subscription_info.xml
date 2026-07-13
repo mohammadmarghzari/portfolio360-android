@@ -138,6 +138,42 @@
                     style="@style/Widget.MaterialComponents.Button.TextButton"
                     app:cornerRadius="10dp" />
 
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:layout_marginTop="6dp"
+                    android:background="#1E293B" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="14dp"
+                    android:text="@string/sub_your_email_label"
+                    android:textColor="@color/chart_baseline"
+                    android:textSize="12sp" />
+
+                <TextView
+                    android:id="@+id/sub_user_email"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:textDirection="ltr"
+                    android:gravity="start"
+                    android:textColor="@color/chart_text"
+                    android:textSize="15sp"
+                    android:textStyle="bold"
+                    android:textIsSelectable="true" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btn_copy_email"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="6dp"
+                    android:text="@string/sub_copy_email"
+                    android:textSize="12sp"
+                    style="@style/Widget.MaterialComponents.Button.TextButton"
+                    app:cornerRadius="10dp" />
+
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"

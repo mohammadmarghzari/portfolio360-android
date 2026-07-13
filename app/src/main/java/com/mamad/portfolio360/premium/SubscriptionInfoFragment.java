@@ -27,14 +27,14 @@ import java.util.Date;
 import java.util.Locale;
 
 /**
- * صفحه راهنمای خرید اشتراک: پلن‌ها، شماره کارت، و دکمه ارسال رسید به ربات تلگرام.
- * دکمه ارسال رسید با شناسه کاربری (uid) به ربات وصل می‌شود تا سرور بداند تأیید
- * مدیر برای کدام حساب است؛ تأیید و فعال‌سازی نهایی در تلگرام و به‌صورت خودکار
- * (از طریق Cloud Function) انجام می‌شود.
+ * صفحه راهنمای خرید اشتراک: پلن‌ها، شماره کارت، و دکمه ارسال رسید مستقیم به
+ * چت تلگرام مدیر (بدون واسطه ربات — چون رله‌ی خودکار سمت سرور در دسترس
+ * نیست). کاربر ایمیل حسابش را همراه رسید می‌فرستد تا مدیر بتواند تشخیص دهد
+ * اشتراک را برای کدام حساب فعال کند.
  */
 public class SubscriptionInfoFragment extends Fragment {
 
-    private static final String TELEGRAM_BOT_URL = "https://t.me/portfolio360bot";
+    private static final String ADMIN_TELEGRAM_URL = "https://t.me/unnamed009";
 
     private static class Plan {
         final String duration;
@@ -71,11 +71,23 @@ public class SubscriptionInfoFragment extends Fragment {
             Toast.makeText(getContext(), R.string.sub_card_copied, Toast.LENGTH_SHORT).show();
         });
 
+        String email = FirebaseAuth.getInstance().getCurrentUser() != null
+                ? FirebaseAuth.getInstance().getCurrentUser().getEmail() : null;
+
+        TextView emailView = view.findViewById(R.id.sub_user_email);
+        emailView.setText(email != null ? email : "—");
+
+        MaterialButton copyEmailBtn = view.findViewById(R.id.btn_copy_email);
+        copyEmailBtn.setOnClickListener(v -> {
+            ClipboardManager clipboard = (ClipboardManager) requireContext().getSystemService(Context.CLIPBOARD_SERVICE);
+            ClipData clip = ClipData.newPlainText("email", emailView.getText().toString());
+            clipboard.setPrimaryClip(clip);
+            Toast.makeText(getContext(), R.string.sub_email_copied, Toast.LENGTH_SHORT).show();
+        });
+
         MaterialButton sendReceiptBtn = view.findViewById(R.id.btn_send_receipt);
         sendReceiptBtn.setOnClickListener(v -> {
-            String uid = FirebaseAuth.getInstance().getUid();
-            String url = uid != null ? TELEGRAM_BOT_URL + "?start=" + uid : TELEGRAM_BOT_URL;
-            Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
+            Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(ADMIN_TELEGRAM_URL));
             startActivity(intent);
         });
 
