@@ -6,7 +6,9 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.fragment.app.FragmentManager;
 
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.mamad.portfolio360.premium.SubscriptionManager;
+import com.mamad.portfolio360.support.SupportFragment;
 import com.mamad.portfolio360.wizard.HomeFragment;
 
 public class MainActivity extends AppCompatActivity {
@@ -27,6 +29,13 @@ public class MainActivity extends AppCompatActivity {
                     .replace(R.id.fragment_container, new HomeFragment())
                     .commit();
         }
+
+        FloatingActionButton fabSupport = findViewById(R.id.fab_support);
+        fabSupport.setOnClickListener(v -> getSupportFragmentManager()
+                .beginTransaction()
+                .replace(R.id.fragment_container, new SupportFragment())
+                .addToBackStack(null)
+                .commit());
     }
 
     @Override
