@@ -27,7 +27,7 @@ public class OptimizationMethod {
         list.add(new OptimizationMethod(
                 "monte_carlo",
                 "شبیه‌سازی مونت‌کارلو",
-                "هزاران مسیر تصادفی قیمتی برای برآورد توزیع بازده و ریسک آینده پرتفوی.",
+                "بررسی هزاران ترکیب وزنی تصادفی و پیشنهاد پرتفوی بر اساس سبک ریسک، بازده هدف و نرخ بدون ریسک شما.",
                 true));
         list.add(new OptimizationMethod(
                 "stress_test",

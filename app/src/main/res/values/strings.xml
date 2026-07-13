@@ -181,15 +181,37 @@
     <string name="cvar_weights_note">وزن هر دارایی: مساوی (هم‌وزن) — بهینه‌سازی وزن‌ها در جلسه بعد اضافه می‌شود.</string>
     <string name="cvar_failed_symbols">دریافت داده این نمادها ناموفق بود: %1$s</string>
     <string name="mc_loading_title">در حال شبیه‌سازی مونت‌کارلو…</string>
-    <string name="mc_loading_body">در حال دریافت داده تاریخی %1$d دارایی برای برآورد میانگین و نوسان…</string>
-    <string name="mc_result_title">نتیجه مونت‌کارلو — افق ۱ ساله (۲۵۲ روز کاری، ۳۰۰۰ مسیر تصادفی)</string>
-    <string name="mc_p5">بدترین ۵٪ مسیرها (کف بدبینانه): %1$s</string>
-    <string name="mc_p25">صدک ۲۵: %1$s</string>
-    <string name="mc_median">میانه (حالت میانی محتمل): %1$s</string>
-    <string name="mc_p75">صدک ۷۵: %1$s</string>
-    <string name="mc_p95">بهترین ۵٪ مسیرها (سقف خوش‌بینانه): %1$s</string>
-    <string name="mc_prob_loss">احتمال زیان در پایان افق: %1$s</string>
-    <string name="mc_note">این شبیه‌سازی بر پایه میانگین و نوسان تاریخی واقعی پرتفوی است و فرض می‌کند رفتار آینده مشابه گذشته باشد — یک برآورد آماری است، نه پیش‌بینی قطعی.</string>
+    <string name="mc_loading_body">در حال دریافت داده تاریخی %1$d دارایی و بررسی هزاران ترکیب وزنی…</string>
+    <string name="mc_note">این پیشنهاد بر پایه میانگین و نوسان تاریخی واقعی دارایی‌های انتخابی است و فرض می‌کند رفتار آینده مشابه گذشته باشد — یک برآورد آماری است، نه توصیه سرمایه‌گذاری قطعی.</string>
+
+    <string name="mc_inputs_title">پارامترهای پیشنهاد پرتفوی</string>
+    <string name="mc_input_expected_return">بازده سالانه مورد انتظار (٪، اختیاری)</string>
+    <string name="mc_input_risk_free_rate">نرخ بدون ریسک سالانه (٪)</string>
+    <string name="mc_input_initial_capital">سرمایه اولیه ($)</string>
+    <string name="mc_style_label">سبک سرمایه‌گذاری</string>
+    <string name="style_conservative">محافظه‌کارانه</string>
+    <string name="style_balanced">متعادل</string>
+    <string name="style_aggressive">تهاجمی</string>
+    <string name="mc_invalid_capital">سرمایه اولیه را به‌درستی و بزرگ‌تر از صفر وارد کنید.</string>
+    <string name="mc_invalid_risk_free">نرخ بدون ریسک را به‌درستی وارد کنید.</string>
+
+    <string name="mc_result_title2">پرتفوی پیشنهادی — بر پایه شبیه‌سازی مونت‌کارلو</string>
+    <string name="mc_weights_title">ترکیب پیشنهادی دارایی‌ها</string>
+    <string name="mc_metrics_title">شاخص‌های ریسک و بازده</string>
+    <string name="mc_frontier_title">نقشه ریسک/بازده (هزاران ترکیب بررسی‌شده)</string>
+
+    <string name="mc_metric_capital">سرمایه اولیه: %1$s</string>
+    <string name="mc_metric_expected_return">بازده سالانه پرتفوی پیشنهادی: %1$s</string>
+    <string name="mc_metric_risk">ریسک پرتفوی (نوسان سالانه): %1$s</string>
+    <string name="mc_metric_sharpe">نسبت شارپ پرتفوی پیشنهادی: %1$s</string>
+    <string name="mc_metric_max_drawdown">بیشترین افت تاریخی این ترکیب: %1$s</string>
+    <string name="mc_metric_recovery_yes">زمان بازیابی از آن افت: %1$d روز کاری</string>
+    <string name="mc_metric_recovery_no">هنوز در بازه داده تاریخی از آن افت بازیابی نشده (%1$d روز کاری سپری‌شده و ادامه دارد)</string>
+    <string name="mc_metric_median">میانه بازده محتمل پرتفوی (افق ۱ ساله): %1$s</string>
+    <string name="mc_metric_range">بازه محتمل با ۹۰٪ اطمینان (بدبینانه تا خوش‌بینانه): %1$s تا %2$s</string>
+    <string name="mc_metric_best_sharpe">بیشترین شارپ ممکن (در میان ترکیب‌های بررسی‌شده): %1$s</string>
+    <string name="mc_metric_best_median">بهترین میانه ممکن (پرتفوی با بیشترین بازده سالانه): %1$s</string>
+    <string name="mc_target_missed">⚠️ هیچ ترکیبی به بازده هدف شما نرسید؛ نزدیک‌ترین پرتفوی ممکن بر اساس سبک انتخابی‌تان نمایش داده شده.</string>
     <string name="stress_result_title">نتیجه آزمون استرس — سناریوهای شناخته‌شده تاریخی</string>
     <string name="stress_scenario_line">%1$s (%2$s): افت تخمینی %3$s</string>
     <string name="stress_disclaimer">⚠️ این درصدها افت واقعی شاخص S&amp;P 500 در آن دوره‌هاست که به‌صورت یکنواخت روی پرتفوی شما اعمال شده — چون داده تاریخی این اپ حداکثر ۳ سال گذشته را پوشش می‌دهد، شبیه‌سازی مستقیم رفتار واقعی دارایی‌های انتخابی شما (به‌خصوص کریپتو) در این بحران‌ها ممکن نیست. این یک سناریوی آموزشی/تخمینی است، نه محاسبه دقیق.</string>

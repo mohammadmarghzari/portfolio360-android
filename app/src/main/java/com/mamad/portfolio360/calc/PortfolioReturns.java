@@ -9,9 +9,9 @@ import java.util.Map;
 import java.util.TreeMap;
 
 /**
- * ابزار مشترک: داده تاریخی چند دارایی را بر اساس روز تقویمی هم‌تراز می‌کند
- * و بازده روزانه پرتفوی هم‌وزن را برمی‌گرداند. توسط CvarEngine و MonteCarloEngine
- * هر دو استفاده می‌شود تا منطق هم‌ترازسازی یک‌بار نوشته شود.
+ * ابزار مشترک: داده تاریخی چند دارایی را بر اساس روز تقویمی هم‌تراز می‌کند.
+ * توسط CvarEngine، MonteCarloEngine و PortfolioOptimizerEngine استفاده می‌شود
+ * تا منطق هم‌ترازسازی یک‌بار نوشته شود.
  */
 public class PortfolioReturns {
 
@@ -20,12 +20,17 @@ public class PortfolioReturns {
         public int alignedDays;
     }
 
-    public static Aligned computeEqualWeighted(Map<String, List<HistoricalPoint>> histories) {
-        Aligned result = new Aligned();
+    /** بازده روزانه هر دارایی به‌طور جداگانه، بر اساس روزهای هم‌تراز مشترک. */
+    public static class PerSymbolAligned {
+        public String[] symbols = new String[0];
+        public double[][] returns = new double[0][]; // [assetIndex][dayIndex]
+        public int alignedDays;
+    }
+
+    public static PerSymbolAligned alignPerSymbol(Map<String, List<HistoricalPoint>> histories) {
+        PerSymbolAligned result = new PerSymbolAligned();
         int n = histories.size();
         if (n == 0) return result;
-
-        double weight = 1.0 / n;
 
         TreeMap<Long, Map<String, Double>> byDay = new TreeMap<>();
         for (Map.Entry<String, List<HistoricalPoint>> e : histories.entrySet()) {
@@ -45,21 +50,37 @@ public class PortfolioReturns {
         result.alignedDays = alignedDays.size();
         if (alignedDays.size() < 2) return result;
 
-        double[] returns = new double[alignedDays.size() - 1];
-        for (int i = 1; i < alignedDays.size(); i++) {
-            Map<String, Double> prevPrices = byDay.get(alignedDays.get(i - 1));
-            Map<String, Double> currPrices = byDay.get(alignedDays.get(i));
+        result.symbols = histories.keySet().toArray(new String[0]);
+        result.returns = new double[result.symbols.length][alignedDays.size() - 1];
 
-            double portRet = 0;
-            for (String symbol : histories.keySet()) {
-                double prev = prevPrices.get(symbol);
-                double curr = currPrices.get(symbol);
-                portRet += weight * (curr / prev - 1.0);
+        for (int a = 0; a < result.symbols.length; a++) {
+            String symbol = result.symbols[a];
+            for (int i = 1; i < alignedDays.size(); i++) {
+                double prev = byDay.get(alignedDays.get(i - 1)).get(symbol);
+                double curr = byDay.get(alignedDays.get(i)).get(symbol);
+                result.returns[a][i - 1] = curr / prev - 1.0;
             }
-            returns[i - 1] = portRet;
         }
 
-        result.dailyReturns = returns;
+        return result;
+    }
+
+    public static Aligned computeEqualWeighted(Map<String, List<HistoricalPoint>> histories) {
+        Aligned result = new Aligned();
+
+        PerSymbolAligned perSymbol = alignPerSymbol(histories);
+        result.alignedDays = perSymbol.alignedDays;
+        if (perSymbol.symbols.length == 0) return result;
+
+        double weight = 1.0 / perSymbol.symbols.length;
+        int days = perSymbol.returns[0].length;
+        double[] combined = new double[days];
+
+        for (double[] assetReturns : perSymbol.returns) {
+            for (int d = 0; d < days; d++) combined[d] += weight * assetReturns[d];
+        }
+
+        result.dailyReturns = combined;
         return result;
     }
 }

@@ -17,13 +17,27 @@ import androidx.fragment.app.Fragment;
 
 import androidx.cardview.widget.CardView;
 
+import com.github.mikephil.charting.charts.PieChart;
+import com.github.mikephil.charting.charts.ScatterChart;
+import com.github.mikephil.charting.components.XAxis;
+import com.github.mikephil.charting.components.YAxis;
+import com.github.mikephil.charting.data.Entry;
+import com.github.mikephil.charting.data.PieData;
+import com.github.mikephil.charting.data.PieDataSet;
+import com.github.mikephil.charting.data.PieEntry;
+import com.github.mikephil.charting.data.ScatterData;
+import com.github.mikephil.charting.data.ScatterDataSet;
+import com.github.mikephil.charting.formatter.ValueFormatter;
 import com.google.android.material.button.MaterialButton;
+import com.google.android.material.textfield.TextInputEditText;
 import com.mamad.portfolio360.R;
 import com.mamad.portfolio360.calc.CvarEngine;
+import com.mamad.portfolio360.calc.PortfolioReturns;
 import com.mamad.portfolio360.calc.ReturnStats;
 import com.mamad.portfolio360.network.HistoricalPoint;
 import com.mamad.portfolio360.network.YahooFinanceClient;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -45,11 +59,25 @@ public class PortfolioSetupFragment extends Fragment {
     private String activeCategory = AssetCatalog.CAT_STOCKS;
     private String selectedTimeframe = "1y";
     private String selectedMethod;
+    private String selectedStyle = PortfolioOptimizerEngine.STYLE_BALANCED;
 
     private LinearLayout categoryContainer;
     private LinearLayout assetListContainer;
     private LinearLayout timeframeContainer;
+    private LinearLayout styleContainer;
     private TextView selectedSummary;
+
+    private View mcInputsCard;
+    private TextInputEditText inputExpectedReturn;
+    private TextInputEditText inputRiskFreeRate;
+    private TextInputEditText inputInitialCapital;
+
+    private static final int[] ASSET_PALETTE = {
+            Color.parseColor("#38BDF8"), Color.parseColor("#22C55E"), Color.parseColor("#FBBF24"),
+            Color.parseColor("#A78BFA"), Color.parseColor("#EF4444"), Color.parseColor("#F472B6"),
+            Color.parseColor("#2DD4BF"), Color.parseColor("#FB923C"), Color.parseColor("#818CF8"),
+            Color.parseColor("#A3E635"),
+    };
 
     @Nullable
     @Override
@@ -60,10 +88,17 @@ public class PortfolioSetupFragment extends Fragment {
         categoryContainer = view.findViewById(R.id.category_container);
         assetListContainer = view.findViewById(R.id.asset_list_container);
         timeframeContainer = view.findViewById(R.id.timeframe_container);
+        styleContainer = view.findViewById(R.id.style_container);
         selectedSummary = view.findViewById(R.id.selected_summary);
+
+        mcInputsCard = view.findViewById(R.id.mc_inputs_card);
+        inputExpectedReturn = view.findViewById(R.id.input_expected_return);
+        inputRiskFreeRate = view.findViewById(R.id.input_risk_free_rate);
+        inputInitialCapital = view.findViewById(R.id.input_initial_capital);
 
         buildCategoryChips();
         buildTimeframeButtons();
+        buildStyleChips();
         buildMethodCards(view.findViewById(R.id.method_container));
         renderAssetList();
 
@@ -242,6 +277,50 @@ public class PortfolioSetupFragment extends Fragment {
         }
     }
 
+    // ---------- سبک سرمایه‌گذاری (فقط برای مونت‌کارلو) ----------
+
+    private void buildStyleChips() {
+        String[] keys = {
+                PortfolioOptimizerEngine.STYLE_CONSERVATIVE,
+                PortfolioOptimizerEngine.STYLE_BALANCED,
+                PortfolioOptimizerEngine.STYLE_AGGRESSIVE
+        };
+        int[] labels = {R.string.style_conservative, R.string.style_balanced, R.string.style_aggressive};
+
+        for (int i = 0; i < keys.length; i++) {
+            String key = keys[i];
+            MaterialButton chip = new MaterialButton(requireContext(), null,
+                    com.google.android.material.R.attr.materialButtonOutlinedStyle);
+            chip.setText(getString(labels[i]));
+            chip.setTextSize(12);
+            chip.setAllCaps(false);
+
+            LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(
+                    0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f);
+            lp.setMarginEnd(i < keys.length - 1 ? 6 : 0);
+            chip.setLayoutParams(lp);
+            chip.setTag(key);
+
+            chip.setOnClickListener(v -> {
+                selectedStyle = key;
+                highlightStyleChips();
+            });
+
+            styleContainer.addView(chip);
+        }
+        highlightStyleChips();
+    }
+
+    private void highlightStyleChips() {
+        for (int i = 0; i < styleContainer.getChildCount(); i++) {
+            View child = styleContainer.getChildAt(i);
+            if (child instanceof MaterialButton) {
+                boolean active = selectedStyle.equals(child.getTag());
+                applyChipStyle((MaterialButton) child, active, R.color.home_card_portfolio);
+            }
+        }
+    }
+
     /** دکمه انتخاب‌شده را کاملاً پر و رنگی نشان می‌دهد؛ بقیه خط‌دار و خنثی می‌مانند. */
     private void applyChipStyle(MaterialButton button, boolean active, int activeColorRes) {
         int activeColor = androidx.core.content.ContextCompat.getColor(requireContext(), activeColorRes);
@@ -281,6 +360,7 @@ public class PortfolioSetupFragment extends Fragment {
             card.setOnClickListener(v -> {
                 selectedMethod = method.key;
                 highlightMethodCards();
+                mcInputsCard.setVisibility("monte_carlo".equals(selectedMethod) ? View.VISIBLE : View.GONE);
             });
 
             container.addView(card);
@@ -333,6 +413,7 @@ public class PortfolioSetupFragment extends Fragment {
     private void runCvarAnalysis() {
         View root = getView();
         if (root == null) return;
+        root.findViewById(R.id.mc_result_card).setVisibility(View.GONE);
 
         CardView resultCard = root.findViewById(R.id.cvar_result_card);
         TextView resultTitle = root.findViewById(R.id.cvar_result_title);
@@ -393,24 +474,39 @@ public class PortfolioSetupFragment extends Fragment {
                 });
     }
 
-    // ---------- مونت‌کارلو ----------
+    // ---------- مونت‌کارلو: پیشنهاد وزن پرتفوی ----------
 
     private void runMonteCarloAnalysis() {
         View root = getView();
         if (root == null) return;
 
-        CardView resultCard = root.findViewById(R.id.cvar_result_card);
-        TextView resultTitle = root.findViewById(R.id.cvar_result_title);
-        TextView resultBody = root.findViewById(R.id.cvar_result_body);
+        double initialCapital = parseDouble(inputInitialCapital, Double.NaN);
+        if (Double.isNaN(initialCapital) || initialCapital <= 0) {
+            Toast.makeText(getContext(), R.string.mc_invalid_capital, Toast.LENGTH_SHORT).show();
+            return;
+        }
+        double riskFreeRate = parseDouble(inputRiskFreeRate, Double.NaN);
+        if (Double.isNaN(riskFreeRate)) {
+            Toast.makeText(getContext(), R.string.mc_invalid_risk_free, Toast.LENGTH_SHORT).show();
+            return;
+        }
+        double expectedReturn = parseDouble(inputExpectedReturn, 0);
 
-        resultCard.setVisibility(View.VISIBLE);
-        resultTitle.setText(R.string.mc_loading_title);
-        resultBody.setText(getString(R.string.mc_loading_body, selectedSymbols.size()));
+        root.findViewById(R.id.cvar_result_card).setVisibility(View.GONE);
+
+        CardView mcCard = root.findViewById(R.id.mc_result_card);
+        TextView mcTitle = root.findViewById(R.id.mc_result_title);
+        TextView mcMetrics = root.findViewById(R.id.mc_metrics_body);
+
+        mcCard.setVisibility(View.VISIBLE);
+        mcTitle.setText(R.string.mc_loading_title);
+        mcMetrics.setText(getString(R.string.mc_loading_body, selectedSymbols.size()));
 
         String yahooRange = mapTimeframeToYahooRange(selectedTimeframe);
         Map<String, List<HistoricalPoint>> histories = new HashMap<>();
+        String style = selectedStyle;
 
-        YahooFinanceClient.fetchMultipleHistories(new java.util.ArrayList<>(selectedSymbols), yahooRange,
+        YahooFinanceClient.fetchMultipleHistories(new ArrayList<>(selectedSymbols), yahooRange,
                 new YahooFinanceClient.MultiHistoryCallback() {
                     @Override
                     public void onEachSuccess(String symbol, List<HistoricalPoint> points) {
@@ -424,30 +520,155 @@ public class PortfolioSetupFragment extends Fragment {
                     public void onComplete() {
                         if (!isAdded()) return;
 
-                        com.mamad.portfolio360.calc.PortfolioReturns.Aligned aligned =
-                                com.mamad.portfolio360.calc.PortfolioReturns.computeEqualWeighted(histories);
+                        PortfolioReturns.PerSymbolAligned aligned = PortfolioReturns.alignPerSymbol(histories);
 
-                        if (aligned.dailyReturns.length < 30) {
-                            resultTitle.setText(R.string.cvar_error_title);
-                            resultBody.setText(getString(R.string.cvar_error_insufficient_days, aligned.alignedDays));
+                        if (aligned.symbols.length == 0 || aligned.alignedDays < 30) {
+                            mcTitle.setText(R.string.cvar_error_title);
+                            mcMetrics.setText(getString(R.string.cvar_error_insufficient_days, aligned.alignedDays));
                             return;
                         }
 
-                        com.mamad.portfolio360.calc.MonteCarloEngine.Result mc =
-                                com.mamad.portfolio360.calc.MonteCarloEngine.simulate(
-                                        aligned.dailyReturns, 252, 3000, 42L);
+                        PortfolioOptimizerEngine.Result opt = PortfolioOptimizerEngine.optimize(
+                                aligned, riskFreeRate, expectedReturn, style, 4000, 7L);
 
-                        resultTitle.setText(R.string.mc_result_title);
-                        resultBody.setText(String.format(Locale.US, "%s\n%s\n%s\n%s\n%s\n\n%s\n\n%s",
-                                getString(R.string.mc_p5, fmtPct(mc.p5Pct)),
-                                getString(R.string.mc_p25, fmtPct(mc.p25Pct)),
-                                getString(R.string.mc_median, fmtPct(mc.medianPct)),
-                                getString(R.string.mc_p75, fmtPct(mc.p75Pct)),
-                                getString(R.string.mc_p95, fmtPct(mc.p95Pct)),
-                                getString(R.string.mc_prob_loss, fmtPct(mc.probabilityOfLossPct)),
-                                getString(R.string.mc_note)));
+                        mcTitle.setText(R.string.mc_result_title2);
+                        renderMonteCarloResult(root, opt, initialCapital);
                     }
                 });
+    }
+
+    private void renderMonteCarloResult(View root, PortfolioOptimizerEngine.Result opt, double initialCapital) {
+        TextView metricsBody = root.findViewById(R.id.mc_metrics_body);
+        LinearLayout weightList = root.findViewById(R.id.mc_weight_list_container);
+        PieChart pieChart = root.findViewById(R.id.mc_pie_chart);
+        ScatterChart scatterChart = root.findViewById(R.id.mc_scatter_chart);
+
+        weightList.removeAllViews();
+        LayoutInflater inflater = LayoutInflater.from(requireContext());
+
+        List<PieEntry> pieEntries = new ArrayList<>();
+        List<Integer> sliceColors = new ArrayList<>();
+
+        for (int i = 0; i < opt.symbols.length; i++) {
+            int color = ASSET_PALETTE[i % ASSET_PALETTE.length];
+            double weightPct = opt.weights[i] * 100.0;
+            double dollar = opt.weights[i] * initialCapital;
+
+            pieEntries.add(new PieEntry((float) weightPct, opt.symbols[i]));
+            sliceColors.add(color);
+
+            View row = inflater.inflate(R.layout.item_weight_row, weightList, false);
+            row.findViewById(R.id.weight_row_dot).setBackgroundTintList(ColorStateList.valueOf(color));
+            ((TextView) row.findViewById(R.id.weight_row_symbol)).setText(opt.symbols[i]);
+            ((TextView) row.findViewById(R.id.weight_row_percent))
+                    .setText(String.format(Locale.US, "%.1f%%", weightPct));
+            ((TextView) row.findViewById(R.id.weight_row_dollar))
+                    .setText(String.format(Locale.US, "$%,.2f", dollar));
+            weightList.addView(row);
+        }
+
+        setupPieChart(pieChart, pieEntries, sliceColors);
+        setupScatterChart(scatterChart, opt);
+
+        StringBuilder sb = new StringBuilder();
+        sb.append(getString(R.string.mc_metric_capital, fmtDollar(initialCapital))).append("\n");
+        sb.append(getString(R.string.mc_metric_expected_return, fmtPct(opt.annualizedReturnPct))).append("\n");
+        sb.append(getString(R.string.mc_metric_risk, fmtPct(opt.annualizedVolPct))).append("\n");
+        sb.append(getString(R.string.mc_metric_sharpe, fmtRatio(opt.sharpe))).append("\n");
+        sb.append(getString(R.string.mc_metric_max_drawdown, fmtPct(opt.maxDrawdownPct))).append("\n");
+
+        if (opt.recovered) {
+            sb.append(getString(R.string.mc_metric_recovery_yes, opt.recoveryDays)).append("\n");
+        } else if (opt.recoveryDays >= 0) {
+            sb.append(getString(R.string.mc_metric_recovery_no, opt.recoveryDays)).append("\n");
+        }
+
+        sb.append(getString(R.string.mc_metric_median, fmtPct(opt.medianForwardReturnPct))).append("\n");
+        sb.append(getString(R.string.mc_metric_range, fmtPct(opt.p5ForwardReturnPct), fmtPct(opt.p95ForwardReturnPct))).append("\n");
+        sb.append(getString(R.string.mc_metric_best_sharpe, fmtRatio(opt.bestPossibleSharpe))).append("\n");
+        sb.append(getString(R.string.mc_metric_best_median, fmtPct(opt.bestPossibleMedianReturnPct)));
+
+        if (!opt.targetAchieved) {
+            sb.append("\n\n").append(getString(R.string.mc_target_missed));
+        }
+
+        metricsBody.setText(sb.toString());
+    }
+
+    private void setupPieChart(PieChart chart, List<PieEntry> entries, List<Integer> colors) {
+        PieDataSet dataSet = new PieDataSet(entries, "");
+        dataSet.setColors(colors);
+        dataSet.setValueTextColor(Color.WHITE);
+        dataSet.setValueTextSize(11f);
+        dataSet.setSliceSpace(2f);
+        dataSet.setValueFormatter(new ValueFormatter() {
+            @Override public String getFormattedValue(float value) {
+                return String.format(Locale.US, "%.1f%%", value);
+            }
+        });
+
+        chart.setData(new PieData(dataSet));
+        chart.getDescription().setEnabled(false);
+        chart.getLegend().setEnabled(false);
+        chart.setHoleColor(Color.TRANSPARENT);
+        chart.setTransparentCircleAlpha(0);
+        chart.setHoleRadius(42f);
+        chart.setTransparentCircleRadius(46f);
+        chart.setBackgroundColor(Color.TRANSPARENT);
+        chart.animateY(500);
+        chart.invalidate();
+    }
+
+    private void setupScatterChart(ScatterChart chart, PortfolioOptimizerEngine.Result opt) {
+        List<Entry> cloudEntries = new ArrayList<>();
+        for (int i = 0; i < opt.cloudVolPct.length; i++) {
+            cloudEntries.add(new Entry((float) opt.cloudVolPct[i], (float) opt.cloudReturnPct[i]));
+        }
+        ScatterDataSet cloudSet = new ScatterDataSet(cloudEntries, "");
+        cloudSet.setColor(Color.parseColor("#64748B"));
+        cloudSet.setScatterShape(com.github.mikephil.charting.charts.ScatterChart.ScatterShape.CIRCLE);
+        cloudSet.setScatterShapeSize(6f);
+        cloudSet.setDrawValues(false);
+
+        List<Entry> pickEntry = new ArrayList<>();
+        pickEntry.add(new Entry((float) opt.annualizedVolPct, (float) opt.annualizedReturnPct));
+        ScatterDataSet pickSet = new ScatterDataSet(pickEntry, "");
+        pickSet.setColor(Color.parseColor("#38BDF8"));
+        pickSet.setScatterShape(com.github.mikephil.charting.charts.ScatterChart.ScatterShape.CIRCLE);
+        pickSet.setScatterShapeSize(18f);
+        pickSet.setDrawValues(false);
+
+        chart.setData(new ScatterData(cloudSet, pickSet));
+        chart.getDescription().setEnabled(false);
+        chart.getLegend().setEnabled(false);
+        chart.setBackgroundColor(Color.TRANSPARENT);
+        chart.setTouchEnabled(false);
+
+        XAxis x = chart.getXAxis();
+        x.setPosition(XAxis.XAxisPosition.BOTTOM);
+        x.setTextColor(Color.parseColor("#94A3B8"));
+        x.setGridColor(Color.parseColor("#1E293B"));
+        x.setAxisLineColor(Color.parseColor("#1E293B"));
+        x.setTextSize(9f);
+        x.setValueFormatter(new ValueFormatter() {
+            @Override public String getFormattedValue(float value) {
+                return String.format(Locale.US, "%.0f%%", value);
+            }
+        });
+
+        YAxis left = chart.getAxisLeft();
+        left.setTextColor(Color.parseColor("#94A3B8"));
+        left.setGridColor(Color.parseColor("#1E293B"));
+        left.setAxisLineColor(Color.parseColor("#1E293B"));
+        left.setTextSize(9f);
+        left.setValueFormatter(new ValueFormatter() {
+            @Override public String getFormattedValue(float value) {
+                return String.format(Locale.US, "%.0f%%", value);
+            }
+        });
+        chart.getAxisRight().setEnabled(false);
+
+        chart.invalidate();
     }
 
     // ---------- آزمون استرس ----------
@@ -455,6 +676,7 @@ public class PortfolioSetupFragment extends Fragment {
     private void runStressTestAnalysis() {
         View root = getView();
         if (root == null) return;
+        root.findViewById(R.id.mc_result_card).setVisibility(View.GONE);
 
         CardView resultCard = root.findViewById(R.id.cvar_result_card);
         TextView resultTitle = root.findViewById(R.id.cvar_result_title);
@@ -480,6 +702,7 @@ public class PortfolioSetupFragment extends Fragment {
     private void runBarbellAnalysis() {
         View root = getView();
         if (root == null) return;
+        root.findViewById(R.id.mc_result_card).setVisibility(View.GONE);
 
         CardView resultCard = root.findViewById(R.id.cvar_result_card);
         TextView resultTitle = root.findViewById(R.id.cvar_result_title);
@@ -524,5 +747,25 @@ public class PortfolioSetupFragment extends Fragment {
 
     private String fmtPct(double v) {
         return String.format(Locale.US, "%.2f%%", v);
+    }
+
+    private String fmtRatio(double v) {
+        return String.format(Locale.US, "%.2f", v);
+    }
+
+    private String fmtDollar(double v) {
+        return String.format(Locale.US, "$%,.2f", v);
+    }
+
+    /** متن یک TextView را به عدد اعشاری تبدیل می‌کند؛ اگر خالی بود fallback و اگر نامعتبر بود NaN برمی‌گرداند. */
+    private double parseDouble(TextView tv, double fallbackIfEmpty) {
+        if (tv == null || tv.getText() == null) return fallbackIfEmpty;
+        String s = tv.getText().toString().trim();
+        if (s.isEmpty()) return fallbackIfEmpty;
+        try {
+            return Double.parseDouble(s);
+        } catch (NumberFormatException e) {
+            return Double.NaN;
+        }
     }
 }
