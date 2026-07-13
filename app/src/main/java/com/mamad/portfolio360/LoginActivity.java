@@ -121,7 +121,9 @@ public class LoginActivity extends AppCompatActivity {
                 }
             });
         } catch (ApiException e) {
-            Toast.makeText(this, R.string.login_google_failed, Toast.LENGTH_SHORT).show();
+            String code = com.google.android.gms.common.api.CommonStatusCodes.getStatusCodeString(e.getStatusCode());
+            Toast.makeText(this, getString(R.string.login_google_failed) + " (" + e.getStatusCode() + " " + code + ")",
+                    Toast.LENGTH_LONG).show();
         }
     }
 
