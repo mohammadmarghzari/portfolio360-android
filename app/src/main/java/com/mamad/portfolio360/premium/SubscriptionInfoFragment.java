@@ -71,6 +71,15 @@ public class SubscriptionInfoFragment extends Fragment {
             Toast.makeText(getContext(), R.string.sub_card_copied, Toast.LENGTH_SHORT).show();
         });
 
+        TextView walletAddress = view.findViewById(R.id.sub_crypto_address);
+        MaterialButton copyWalletBtn = view.findViewById(R.id.btn_copy_wallet);
+        copyWalletBtn.setOnClickListener(v -> {
+            ClipboardManager clipboard = (ClipboardManager) requireContext().getSystemService(Context.CLIPBOARD_SERVICE);
+            ClipData clip = ClipData.newPlainText("wallet_address", walletAddress.getText().toString());
+            clipboard.setPrimaryClip(clip);
+            Toast.makeText(getContext(), R.string.sub_wallet_copied, Toast.LENGTH_SHORT).show();
+        });
+
         String email = FirebaseAuth.getInstance().getCurrentUser() != null
                 ? FirebaseAuth.getInstance().getCurrentUser().getEmail() : null;
 

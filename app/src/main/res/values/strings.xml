@@ -189,6 +189,16 @@
     <string name="sub_send_receipt_button">ارسال رسید در تلگرام</string>
     <string name="sub_note">فعال‌سازی اشتراک فعلاً به‌صورت دستی و پس از بررسی رسید انجام می‌شود و معمولاً چند ساعت زمان می‌برد.</string>
 
+    <string name="sub_crypto_title">پرداخت با کریپتو (USDT)</string>
+    <string name="sub_crypto_desc">اگه پرداخت با کارت بانکی برات ممکن نیست، می‌تونی معادل مبلغ پلن رو به تتر (USDT) به آدرس زیر واریز کنی.</string>
+    <string name="sub_crypto_address_label">آدرس کیف‌پول</string>
+    <string name="sub_crypto_address_value">0x75105Cb879529CC86ef126A761bD4Ef0943F0502</string>
+    <string name="sub_crypto_network_arbitrum">Arbitrum</string>
+    <string name="sub_crypto_network_bep20">BEP20 (BSC)</string>
+    <string name="sub_crypto_warning">⚠️ فقط از شبکه‌ی Arbitrum یا BEP20 (BSC) واریز کن. واریز از شبکه‌های دیگر ممکن است دارایی را از بین ببرد.</string>
+    <string name="sub_copy_wallet">کپی آدرس کیف‌پول</string>
+    <string name="sub_wallet_copied">آدرس کیف‌پول کپی شد</string>
+
     <string name="login_subtitle">برای استفاده از اپ، وارد حساب خودت شو</string>
     <string name="login_title_signup">ساخت حساب کاربری</string>
     <string name="login_title_login">ورود به حساب</string>
