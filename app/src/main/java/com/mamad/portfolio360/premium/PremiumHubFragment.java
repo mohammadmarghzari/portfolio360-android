@@ -15,6 +15,7 @@ import androidx.fragment.app.Fragment;
 
 import com.google.android.material.button.MaterialButton;
 import com.mamad.portfolio360.R;
+import com.mamad.portfolio360.builder.PayoffBuilderFragment;
 import com.mamad.portfolio360.fragments.CoveredCallFragment;
 import com.mamad.portfolio360.fragments.ProtectivePutFragment;
 import com.mamad.portfolio360.portfolio.PortfolioSetupFragment;
@@ -102,6 +103,10 @@ public class PremiumHubFragment extends Fragment {
                 getString(R.string.premium_item_long_strangle_title),
                 getString(R.string.premium_item_long_strangle_desc),
                 () -> OptionChainFragment.newInstanceForStrategy("long_strangle")));
+        items.add(new Item(
+                getString(R.string.premium_item_builder_title),
+                getString(R.string.premium_item_builder_desc),
+                PayoffBuilderFragment::new));
         items.add(new Item(
                 getString(R.string.premium_item_portfolio_title),
                 getString(R.string.premium_item_portfolio_desc),

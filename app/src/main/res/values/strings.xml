@@ -259,6 +259,26 @@
     <string name="guide_etf_title">صندوق‌های قابل‌معامله (ETF مثل SPY، QQQ)</string>
     <string name="guide_etf_body">بیشتر ETFها هم مثل سهام آمریکایی از طریق همان پلتفرم‌های توکنایزشده (بخش سهام بالا) قابل معامله‌اند؛ قبل از خرید، لیست نمادهای موجود در پلتفرم را چک کن چون ممکن است همه‌ی ETFها پشتیبانی نشوند.</string>
 
+    <string name="premium_item_builder_title">ماشین‌حساب سریع آپشن</string>
+    <string name="premium_item_builder_desc">قراردادهای دلخواهت رو اضافه کن و نمودار سود/زیان ترکیبی رو ببین</string>
+    <string name="builder_title">ماشین‌حساب سریع آپشن</string>
+    <string name="builder_subtitle">هر تعداد قرارداد که بخوای اضافه کن — دارایی پایه، کال یا پوت، خرید یا فروش — و نمودار سود و زیان ترکیبی‌شون رو ببین.</string>
+    <string name="builder_spot_label">قیمت لحظه‌ای دارایی پایه</string>
+    <string name="builder_legs_header">قراردادها</string>
+    <string name="builder_no_legs">هنوز قراردادی اضافه نکردی — روی «افزودن قرارداد» بزن.</string>
+    <string name="builder_add_leg">➕ افزودن قرارداد</string>
+    <string name="builder_calculate">محاسبه</string>
+    <string name="builder_remove_leg">✕</string>
+    <string name="builder_max_legs_toast">حداکثر ۱۲ قرارداد رو می‌تونی اضافه کنی</string>
+    <string name="builder_leg_type_spot">دارایی پایه</string>
+    <string name="builder_leg_type_call">کال</string>
+    <string name="builder_leg_type_put">پوت</string>
+    <string name="builder_leg_side_buy">خرید</string>
+    <string name="builder_leg_side_sell">فروش</string>
+    <string name="builder_leg_strike_hint">استرایک</string>
+    <string name="builder_leg_price_hint">قیمت/پرمیوم</string>
+    <string name="builder_leg_qty_hint">تعداد</string>
+
     <string name="login_subtitle">برای استفاده از اپ، وارد حساب خودت شو</string>
     <string name="login_title_signup">ساخت حساب کاربری</string>
     <string name="login_title_login">ورود به حساب</string>
