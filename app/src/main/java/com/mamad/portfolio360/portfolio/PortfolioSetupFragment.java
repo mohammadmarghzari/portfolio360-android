@@ -31,7 +31,6 @@ import com.github.mikephil.charting.formatter.ValueFormatter;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.textfield.TextInputEditText;
 import com.mamad.portfolio360.R;
-import com.mamad.portfolio360.calc.CvarEngine;
 import com.mamad.portfolio360.calc.PortfolioReturns;
 import com.mamad.portfolio360.calc.ReturnStats;
 import com.mamad.portfolio360.network.HistoricalPoint;
@@ -360,7 +359,7 @@ public class PortfolioSetupFragment extends Fragment {
             card.setOnClickListener(v -> {
                 selectedMethod = method.key;
                 highlightMethodCards();
-                mcInputsCard.setVisibility("monte_carlo".equals(selectedMethod) ? View.VISIBLE : View.GONE);
+                mcInputsCard.setVisibility(View.VISIBLE);
             });
 
             container.addView(card);
@@ -413,21 +412,31 @@ public class PortfolioSetupFragment extends Fragment {
     private void runCvarAnalysis() {
         View root = getView();
         if (root == null) return;
-        root.findViewById(R.id.mc_result_card).setVisibility(View.GONE);
 
-        CardView resultCard = root.findViewById(R.id.cvar_result_card);
-        TextView resultTitle = root.findViewById(R.id.cvar_result_title);
-        TextView resultBody = root.findViewById(R.id.cvar_result_body);
+        double initialCapital = parseDouble(inputInitialCapital, Double.NaN);
+        if (Double.isNaN(initialCapital) || initialCapital <= 0) {
+            Toast.makeText(getContext(), R.string.mc_invalid_capital, Toast.LENGTH_SHORT).show();
+            return;
+        }
+        double riskFreeRate = parseDouble(inputRiskFreeRate, Double.NaN);
+        if (Double.isNaN(riskFreeRate)) {
+            Toast.makeText(getContext(), R.string.mc_invalid_risk_free, Toast.LENGTH_SHORT).show();
+            return;
+        }
+        double expectedReturn = parseDouble(inputExpectedReturn, 0);
 
-        resultCard.setVisibility(View.VISIBLE);
-        resultTitle.setText(R.string.cvar_loading_title);
-        resultBody.setText(getString(R.string.cvar_loading_body, selectedSymbols.size()));
+        CardView dashboardCard = root.findViewById(R.id.mc_result_card);
+        TextView dashboardTitle = root.findViewById(R.id.mc_result_title);
+        TextView dashboardMetrics = root.findViewById(R.id.mc_metrics_body);
+
+        dashboardCard.setVisibility(View.VISIBLE);
+        dashboardTitle.setText(R.string.cvar_loading_title);
+        dashboardMetrics.setText(getString(R.string.cvar_loading_body, selectedSymbols.size()));
 
         String yahooRange = mapTimeframeToYahooRange(selectedTimeframe);
         Map<String, List<HistoricalPoint>> histories = new HashMap<>();
-        List<String> failedSymbols = new java.util.ArrayList<>();
 
-        YahooFinanceClient.fetchMultipleHistories(new java.util.ArrayList<>(selectedSymbols), yahooRange,
+        YahooFinanceClient.fetchMultipleHistories(new ArrayList<>(selectedSymbols), yahooRange,
                 new YahooFinanceClient.MultiHistoryCallback() {
                     @Override
                     public void onEachSuccess(String symbol, List<HistoricalPoint> points) {
@@ -435,41 +444,25 @@ public class PortfolioSetupFragment extends Fragment {
                     }
 
                     @Override
-                    public void onEachError(String symbol, String message) {
-                        failedSymbols.add(symbol);
-                    }
+                    public void onEachError(String symbol, String message) { /* نادیده گرفته می‌شود */ }
 
                     @Override
                     public void onComplete() {
                         if (!isAdded()) return;
 
-                        if (histories.size() < 1) {
-                            resultTitle.setText(R.string.cvar_error_title);
-                            resultBody.setText(getString(R.string.cvar_error_no_data));
+                        PortfolioReturns.PerSymbolAligned aligned = PortfolioReturns.alignPerSymbol(histories);
+
+                        if (aligned.symbols.length == 0 || aligned.alignedDays < 30) {
+                            dashboardTitle.setText(R.string.cvar_error_title);
+                            dashboardMetrics.setText(getString(R.string.cvar_error_insufficient_days, aligned.alignedDays));
                             return;
                         }
 
-                        CvarEngine.Result result = CvarEngine.computeEqualWeighted(histories);
+                        PortfolioOptimizerEngine.Result opt = PortfolioOptimizerEngine.optimizeMinCvar(
+                                aligned, riskFreeRate, expectedReturn, 4000, 11L);
 
-                        if (result.alignedDays < 30) {
-                            resultTitle.setText(R.string.cvar_error_title);
-                            resultBody.setText(getString(R.string.cvar_error_insufficient_days, result.alignedDays));
-                            return;
-                        }
-
-                        String failedNote = failedSymbols.isEmpty() ? ""
-                                : "\n\n" + getString(R.string.cvar_failed_symbols, String.join("، ", failedSymbols));
-
-                        resultTitle.setText(getString(R.string.cvar_result_title, histories.size()));
-                        resultBody.setText(String.format(Locale.US,
-                                "%s\n\n%s\n%s\n%s\n%s\n%s%s",
-                                getString(R.string.cvar_aligned_days, result.alignedDays),
-                                getString(R.string.cvar_annualized_return, fmtPct(result.annualizedReturnPct)),
-                                getString(R.string.cvar_annualized_vol, fmtPct(result.annualizedVolPct)),
-                                getString(R.string.cvar_var95, fmtPct(result.var95Pct)),
-                                getString(R.string.cvar_cvar95, fmtPct(result.cvar95Pct)),
-                                getString(R.string.cvar_weights_note),
-                                failedNote));
+                        dashboardTitle.setText(R.string.cvar_dashboard_title);
+                        renderPortfolioDashboard(root, opt, initialCapital);
                     }
                 });
     }
@@ -491,8 +484,6 @@ public class PortfolioSetupFragment extends Fragment {
             return;
         }
         double expectedReturn = parseDouble(inputExpectedReturn, 0);
-
-        root.findViewById(R.id.cvar_result_card).setVisibility(View.GONE);
 
         CardView mcCard = root.findViewById(R.id.mc_result_card);
         TextView mcTitle = root.findViewById(R.id.mc_result_title);
@@ -532,16 +523,22 @@ public class PortfolioSetupFragment extends Fragment {
                                 aligned, riskFreeRate, expectedReturn, style, 4000, 7L);
 
                         mcTitle.setText(R.string.mc_result_title2);
-                        renderMonteCarloResult(root, opt, initialCapital);
+                        renderPortfolioDashboard(root, opt, initialCapital);
                     }
                 });
     }
 
-    private void renderMonteCarloResult(View root, PortfolioOptimizerEngine.Result opt, double initialCapital) {
+    private void renderPortfolioDashboard(View root, PortfolioOptimizerEngine.Result opt, double initialCapital) {
+        renderPortfolioDashboard(root, opt, initialCapital, null);
+    }
+
+    private void renderPortfolioDashboard(View root, PortfolioOptimizerEngine.Result opt, double initialCapital,
+                                           String extraFooter) {
         TextView metricsBody = root.findViewById(R.id.mc_metrics_body);
         LinearLayout weightList = root.findViewById(R.id.mc_weight_list_container);
         PieChart pieChart = root.findViewById(R.id.mc_pie_chart);
         ScatterChart scatterChart = root.findViewById(R.id.mc_scatter_chart);
+        View frontierLabel = root.findViewById(R.id.mc_frontier_title_label);
 
         weightList.removeAllViews();
         LayoutInflater inflater = LayoutInflater.from(requireContext());
@@ -568,13 +565,18 @@ public class PortfolioSetupFragment extends Fragment {
         }
 
         setupPieChart(pieChart, pieEntries, sliceColors);
-        setupScatterChart(scatterChart, opt);
+
+        boolean hasCloud = opt.cloudVolPct.length > 0;
+        frontierLabel.setVisibility(hasCloud ? View.VISIBLE : View.GONE);
+        scatterChart.setVisibility(hasCloud ? View.VISIBLE : View.GONE);
+        if (hasCloud) setupScatterChart(scatterChart, opt);
 
         StringBuilder sb = new StringBuilder();
         sb.append(getString(R.string.mc_metric_capital, fmtDollar(initialCapital))).append("\n");
         sb.append(getString(R.string.mc_metric_expected_return, fmtPct(opt.annualizedReturnPct))).append("\n");
         sb.append(getString(R.string.mc_metric_risk, fmtPct(opt.annualizedVolPct))).append("\n");
         sb.append(getString(R.string.mc_metric_sharpe, fmtRatio(opt.sharpe))).append("\n");
+        sb.append(getString(R.string.mc_metric_cvar95, fmtPct(opt.cvar95Pct))).append("\n");
         sb.append(getString(R.string.mc_metric_max_drawdown, fmtPct(opt.maxDrawdownPct))).append("\n");
 
         if (opt.recovered) {
@@ -584,12 +586,19 @@ public class PortfolioSetupFragment extends Fragment {
         }
 
         sb.append(getString(R.string.mc_metric_median, fmtPct(opt.medianForwardReturnPct))).append("\n");
-        sb.append(getString(R.string.mc_metric_range, fmtPct(opt.p5ForwardReturnPct), fmtPct(opt.p95ForwardReturnPct))).append("\n");
-        sb.append(getString(R.string.mc_metric_best_sharpe, fmtRatio(opt.bestPossibleSharpe))).append("\n");
-        sb.append(getString(R.string.mc_metric_best_median, fmtPct(opt.bestPossibleMedianReturnPct)));
+        sb.append(getString(R.string.mc_metric_range, fmtPct(opt.p5ForwardReturnPct), fmtPct(opt.p95ForwardReturnPct)));
+
+        if (hasCloud) {
+            sb.append("\n").append(getString(R.string.mc_metric_best_sharpe, fmtRatio(opt.bestPossibleSharpe)));
+            sb.append("\n").append(getString(R.string.mc_metric_best_median, fmtPct(opt.bestPossibleMedianReturnPct)));
+        }
 
         if (!opt.targetAchieved) {
             sb.append("\n\n").append(getString(R.string.mc_target_missed));
+        }
+
+        if (extraFooter != null) {
+            sb.append("\n\n").append(extraFooter);
         }
 
         metricsBody.setText(sb.toString());
@@ -676,25 +685,71 @@ public class PortfolioSetupFragment extends Fragment {
     private void runStressTestAnalysis() {
         View root = getView();
         if (root == null) return;
-        root.findViewById(R.id.mc_result_card).setVisibility(View.GONE);
 
-        CardView resultCard = root.findViewById(R.id.cvar_result_card);
-        TextView resultTitle = root.findViewById(R.id.cvar_result_title);
-        TextView resultBody = root.findViewById(R.id.cvar_result_body);
-
-        resultCard.setVisibility(View.VISIBLE);
-        resultTitle.setText(R.string.stress_result_title);
-
-        StringBuilder sb = new StringBuilder();
-        for (com.mamad.portfolio360.calc.StressTestEngine.Scenario sc :
-                com.mamad.portfolio360.calc.StressTestEngine.scenarios()) {
-            if (sb.length() > 0) sb.append("\n");
-            sb.append(getString(R.string.stress_scenario_line,
-                    sc.titleFa, sc.periodFa, fmtPct(sc.shockPct)));
+        double initialCapital = parseDouble(inputInitialCapital, Double.NaN);
+        if (Double.isNaN(initialCapital) || initialCapital <= 0) {
+            Toast.makeText(getContext(), R.string.mc_invalid_capital, Toast.LENGTH_SHORT).show();
+            return;
         }
-        sb.append("\n\n").append(getString(R.string.stress_disclaimer));
+        double riskFreeRate = parseDouble(inputRiskFreeRate, Double.NaN);
+        if (Double.isNaN(riskFreeRate)) {
+            Toast.makeText(getContext(), R.string.mc_invalid_risk_free, Toast.LENGTH_SHORT).show();
+            return;
+        }
 
-        resultBody.setText(sb.toString());
+        CardView dashboardCard = root.findViewById(R.id.mc_result_card);
+        TextView dashboardTitle = root.findViewById(R.id.mc_result_title);
+        TextView dashboardMetrics = root.findViewById(R.id.mc_metrics_body);
+
+        dashboardCard.setVisibility(View.VISIBLE);
+        dashboardTitle.setText(R.string.cvar_loading_title);
+        dashboardMetrics.setText(getString(R.string.cvar_loading_body, selectedSymbols.size()));
+
+        String yahooRange = mapTimeframeToYahooRange(selectedTimeframe);
+        Map<String, List<HistoricalPoint>> histories = new HashMap<>();
+
+        YahooFinanceClient.fetchMultipleHistories(new ArrayList<>(selectedSymbols), yahooRange,
+                new YahooFinanceClient.MultiHistoryCallback() {
+                    @Override
+                    public void onEachSuccess(String symbol, List<HistoricalPoint> points) {
+                        histories.put(symbol, points);
+                    }
+
+                    @Override
+                    public void onEachError(String symbol, String message) { /* نادیده گرفته می‌شود */ }
+
+                    @Override
+                    public void onComplete() {
+                        if (!isAdded()) return;
+
+                        PortfolioReturns.PerSymbolAligned aligned = PortfolioReturns.alignPerSymbol(histories);
+
+                        if (aligned.symbols.length == 0 || aligned.alignedDays < 30) {
+                            dashboardTitle.setText(R.string.cvar_error_title);
+                            dashboardMetrics.setText(getString(R.string.cvar_error_insufficient_days, aligned.alignedDays));
+                            return;
+                        }
+
+                        double[] equalWeights = new double[aligned.symbols.length];
+                        java.util.Arrays.fill(equalWeights, 1.0 / aligned.symbols.length);
+
+                        PortfolioOptimizerEngine.Result opt = PortfolioOptimizerEngine.evaluateFixed(
+                                aligned, equalWeights, riskFreeRate, 13L);
+
+                        StringBuilder scenarios = new StringBuilder();
+                        for (com.mamad.portfolio360.calc.StressTestEngine.Scenario sc :
+                                com.mamad.portfolio360.calc.StressTestEngine.scenarios()) {
+                            if (scenarios.length() > 0) scenarios.append("\n");
+                            double dollarImpact = initialCapital * (sc.shockPct / 100.0);
+                            scenarios.append(getString(R.string.stress_scenario_dollar_line,
+                                    sc.titleFa, sc.periodFa, fmtPct(sc.shockPct), fmtDollar(dollarImpact)));
+                        }
+                        scenarios.append("\n\n").append(getString(R.string.stress_disclaimer));
+
+                        dashboardTitle.setText(R.string.stress_dashboard_title);
+                        renderPortfolioDashboard(root, opt, initialCapital, scenarios.toString());
+                    }
+                });
     }
 
     // ---------- بارِبل طالب ----------
@@ -702,42 +757,85 @@ public class PortfolioSetupFragment extends Fragment {
     private void runBarbellAnalysis() {
         View root = getView();
         if (root == null) return;
-        root.findViewById(R.id.mc_result_card).setVisibility(View.GONE);
 
-        CardView resultCard = root.findViewById(R.id.cvar_result_card);
-        TextView resultTitle = root.findViewById(R.id.cvar_result_title);
-        TextView resultBody = root.findViewById(R.id.cvar_result_body);
+        double initialCapital = parseDouble(inputInitialCapital, Double.NaN);
+        if (Double.isNaN(initialCapital) || initialCapital <= 0) {
+            Toast.makeText(getContext(), R.string.mc_invalid_capital, Toast.LENGTH_SHORT).show();
+            return;
+        }
+        double riskFreeRate = parseDouble(inputRiskFreeRate, Double.NaN);
+        if (Double.isNaN(riskFreeRate)) {
+            Toast.makeText(getContext(), R.string.mc_invalid_risk_free, Toast.LENGTH_SHORT).show();
+            return;
+        }
 
-        resultCard.setVisibility(View.VISIBLE);
-        resultTitle.setText(R.string.barbell_result_title);
+        CardView dashboardCard = root.findViewById(R.id.mc_result_card);
+        TextView dashboardTitle = root.findViewById(R.id.mc_result_title);
+        TextView dashboardMetrics = root.findViewById(R.id.mc_metrics_body);
+
+        dashboardCard.setVisibility(View.VISIBLE);
+        dashboardTitle.setText(R.string.cvar_loading_title);
+        dashboardMetrics.setText(getString(R.string.cvar_loading_body, selectedSymbols.size()));
 
         BarbellEngine.Result bar = BarbellEngine.compute(selectedSymbols);
 
-        StringBuilder sb = new StringBuilder();
+        String yahooRange = mapTimeframeToYahooRange(selectedTimeframe);
+        Map<String, List<HistoricalPoint>> histories = new HashMap<>();
 
-        if (bar.hasSafeBucket) {
-            sb.append(getString(R.string.barbell_safe_bucket_label)).append("\n");
-            for (String s : bar.safeAssets) {
-                sb.append(getString(R.string.barbell_weight_line, s, fmtPct(bar.weightPct.get(s)))).append("\n");
-            }
-        } else {
-            sb.append(getString(R.string.barbell_no_safe_note)).append("\n");
-        }
+        YahooFinanceClient.fetchMultipleHistories(new ArrayList<>(selectedSymbols), yahooRange,
+                new YahooFinanceClient.MultiHistoryCallback() {
+                    @Override
+                    public void onEachSuccess(String symbol, List<HistoricalPoint> points) {
+                        histories.put(symbol, points);
+                    }
 
-        sb.append("\n");
+                    @Override
+                    public void onEachError(String symbol, String message) { /* نادیده گرفته می‌شود */ }
 
-        if (bar.hasRiskyBucket) {
-            sb.append(getString(R.string.barbell_risky_bucket_label)).append("\n");
-            for (String s : bar.riskyAssets) {
-                sb.append(getString(R.string.barbell_weight_line, s, fmtPct(bar.weightPct.get(s)))).append("\n");
-            }
-        } else {
-            sb.append(getString(R.string.barbell_no_risky_note)).append("\n");
-        }
+                    @Override
+                    public void onComplete() {
+                        if (!isAdded()) return;
 
-        sb.append("\n").append(getString(R.string.barbell_note));
+                        PortfolioReturns.PerSymbolAligned aligned = PortfolioReturns.alignPerSymbol(histories);
 
-        resultBody.setText(sb.toString());
+                        if (aligned.symbols.length == 0 || aligned.alignedDays < 30) {
+                            dashboardTitle.setText(R.string.cvar_error_title);
+                            dashboardMetrics.setText(getString(R.string.cvar_error_insufficient_days, aligned.alignedDays));
+                            return;
+                        }
+
+                        // وزن‌های بارِبل (۰..۱۰۰) را به همان ترتیب aligned.symbols نگاشت و بازنرمال‌سازی می‌کنیم
+                        // (چون ممکن است برخی نمادها به‌خاطر خطای دریافت داده حذف شده باشند).
+                        double[] weights = new double[aligned.symbols.length];
+                        double sum = 0;
+                        for (int i = 0; i < aligned.symbols.length; i++) {
+                            Double pct = bar.weightPct.get(aligned.symbols[i]);
+                            weights[i] = pct != null ? pct / 100.0 : 0;
+                            sum += weights[i];
+                        }
+                        if (sum > 0) {
+                            for (int i = 0; i < weights.length; i++) weights[i] /= sum;
+                        } else {
+                            java.util.Arrays.fill(weights, 1.0 / weights.length);
+                        }
+
+                        PortfolioOptimizerEngine.Result opt = PortfolioOptimizerEngine.evaluateFixed(
+                                aligned, weights, riskFreeRate, 17L);
+
+                        StringBuilder bucketNote = new StringBuilder();
+                        bucketNote.append(bar.hasSafeBucket
+                                ? getString(R.string.barbell_safe_bucket_label)
+                                : getString(R.string.barbell_no_safe_note));
+                        bucketNote.append("\n");
+                        bucketNote.append(bar.hasRiskyBucket
+                                ? getString(R.string.barbell_risky_bucket_label)
+                                : getString(R.string.barbell_no_risky_note));
+                        bucketNote.append("\n\n").append(getString(R.string.barbell_note));
+
+                        dashboardTitle.setText(R.string.barbell_dashboard_title);
+                        renderPortfolioDashboard(root, opt, initialCapital, bucketNote.toString());
+                    }
+                });
     }
 
     private String mapTimeframeToYahooRange(String key) {

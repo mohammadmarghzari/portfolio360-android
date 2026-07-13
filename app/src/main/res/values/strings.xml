@@ -172,14 +172,6 @@
     <string name="cvar_error_title">خطا در محاسبه</string>
     <string name="cvar_error_no_data">هیچ داده معتبری دریافت نشد.</string>
     <string name="cvar_error_insufficient_days">فقط %1$d روز هم‌تراز بین دارایی‌ها یافت شد — برای محاسبه معتبر، حداقل ۳۰ روز لازم است.</string>
-    <string name="cvar_result_title">نتیجه CVaR — پرتفوی هم‌وزن (%1$d دارایی)</string>
-    <string name="cvar_aligned_days">روزهای هم‌تراز مورد استفاده: %1$s</string>
-    <string name="cvar_annualized_return">بازده سالانه‌شده پرتفوی: %1$s</string>
-    <string name="cvar_annualized_vol">نوسان سالانه‌شده پرتفوی: %1$s</string>
-    <string name="cvar_var95">VaR ۹۵٪ (روزانه): %1$s</string>
-    <string name="cvar_cvar95">CVaR ۹۵٪ (روزانه، میانگین بدترین ۵٪ روزها): %1$s</string>
-    <string name="cvar_weights_note">وزن هر دارایی: مساوی (هم‌وزن) — بهینه‌سازی وزن‌ها در جلسه بعد اضافه می‌شود.</string>
-    <string name="cvar_failed_symbols">دریافت داده این نمادها ناموفق بود: %1$s</string>
     <string name="mc_loading_title">در حال شبیه‌سازی مونت‌کارلو…</string>
     <string name="mc_loading_body">در حال دریافت داده تاریخی %1$d دارایی و بررسی هزاران ترکیب وزنی…</string>
     <string name="mc_note">این پیشنهاد بر پایه میانگین و نوسان تاریخی واقعی دارایی‌های انتخابی است و فرض می‌کند رفتار آینده مشابه گذشته باشد — یک برآورد آماری است، نه توصیه سرمایه‌گذاری قطعی.</string>
@@ -212,13 +204,15 @@
     <string name="mc_metric_best_sharpe">بیشترین شارپ ممکن (در میان ترکیب‌های بررسی‌شده): %1$s</string>
     <string name="mc_metric_best_median">بهترین میانه ممکن (پرتفوی با بیشترین بازده سالانه): %1$s</string>
     <string name="mc_target_missed">⚠️ هیچ ترکیبی به بازده هدف شما نرسید؛ نزدیک‌ترین پرتفوی ممکن بر اساس سبک انتخابی‌تان نمایش داده شده.</string>
-    <string name="stress_result_title">نتیجه آزمون استرس — سناریوهای شناخته‌شده تاریخی</string>
-    <string name="stress_scenario_line">%1$s (%2$s): افت تخمینی %3$s</string>
+    <string name="mc_metric_cvar95">CVaR ۹۵٪ روزانه (میانگین بدترین ۵٪ روزها): %1$s</string>
+
+    <string name="cvar_dashboard_title">پرتفوی پیشنهادی — کمینه‌سازی CVaR</string>
+    <string name="barbell_dashboard_title">تخصیص بارِبل طالب (۹۰/۱۰) — تحلیل کامل ریسک</string>
+    <string name="stress_dashboard_title">پرتفوی هم‌وزن — پایه آزمون استرس</string>
+    <string name="stress_scenario_dollar_line">%1$s (%2$s): افت تخمینی %3$s ≈ %4$s از سرمایه اولیه</string>
     <string name="stress_disclaimer">⚠️ این درصدها افت واقعی شاخص S&amp;P 500 در آن دوره‌هاست که به‌صورت یکنواخت روی پرتفوی شما اعمال شده — چون داده تاریخی این اپ حداکثر ۳ سال گذشته را پوشش می‌دهد، شبیه‌سازی مستقیم رفتار واقعی دارایی‌های انتخابی شما (به‌خصوص کریپتو) در این بحران‌ها ممکن نیست. این یک سناریوی آموزشی/تخمینی است، نه محاسبه دقیق.</string>
-    <string name="barbell_result_title">تخصیص پیشنهادی بارِبل طالب (۹۰/۱۰)</string>
     <string name="barbell_safe_bucket_label">سبد امن (۹۰٪) — بر پایه صندوق‌های انتخابی:</string>
     <string name="barbell_risky_bucket_label">سبد پرریسک (۱۰٪) — سهام/کریپتو/کالای انتخابی:</string>
-    <string name="barbell_weight_line">%1$s: %2$s از کل پرتفوی</string>
     <string name="barbell_no_safe_note">⚠️ هیچ صندوقی (ETF) انتخاب نکرده‌اید — برای بارِبل واقعی، حداقل یک صندوق پایدار (مثل SPY یا TLT) هم انتخاب کنید. فعلاً همه دارایی‌ها در سبد پرریسک با وزن مساوی قرار گرفته‌اند.</string>
     <string name="barbell_no_risky_note">⚠️ هیچ دارایی پرریسکی (سهام/کریپتو/کالا) انتخاب نکرده‌اید — فقط سبد امن (۹۰٪) قابل محاسبه است.</string>
     <string name="barbell_note">این یک ساده‌سازی آموزشی است: بارِبل اصیل طالب معمولاً نقد/اوراق کوتاه‌مدت را در برابر دارایی‌های فوق‌نامتقارن قرار می‌دهد؛ اینجا دسته «صندوق‌ها» به‌عنوان نزدیک‌ترین معادل در دسترس استفاده شده.</string>

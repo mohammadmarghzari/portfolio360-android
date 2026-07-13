@@ -3,14 +3,17 @@ package com.mamad.portfolio360.portfolio;
 import com.mamad.portfolio360.calc.MonteCarloEngine;
 import com.mamad.portfolio360.calc.PortfolioReturns;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Random;
 
 /**
- * پیشنهاد وزن پرتفوی با جست‌وجوی مونت‌کارلو روی هزاران ترکیب وزنی تصادفی
- * (نمونه‌گیری یکنواخت روی سیمپلکس). برای هر ترکیب، بازده/نوسان سالانه‌شده و
- * نسبت شارپ (با نرخ بدون ریسک ورودی کاربر) محاسبه می‌شود؛ در پایان، بر اساس
- * سبک انتخابی کاربر (محافظه‌کار → کمترین نوسان، متعادل → بیشترین شارپ،
- * تهاجمی → بیشترین بازده) و در صورت وجود بازده هدف، بهترین ترکیب انتخاب می‌شود.
+ * موتور مشترک ریسک/بازده پرتفوی: یا وزن پیشنهادی را با جست‌وجوی مونت‌کارلو
+ * روی هزاران ترکیب وزنی تصادفی پیدا می‌کند (optimize / optimizeMinCvar)،
+ * یا شاخص‌های کامل ریسک/بازده را برای یک ترکیب وزنی از پیش‌تعیین‌شده محاسبه
+ * می‌کند (evaluateFixed — برای روش‌هایی مثل بارِبل طالب که وزن‌ها بر اساس
+ * قاعده استراتژی مشخص می‌شوند، نه جست‌وجو).
  */
 public class PortfolioOptimizerEngine {
 
@@ -25,6 +28,7 @@ public class PortfolioOptimizerEngine {
         public double annualizedReturnPct;
         public double annualizedVolPct;
         public double sharpe;
+        public double cvar95Pct; // CVaR ۹۵٪ روزانه (میانگین بدترین ۵٪ روزها)
 
         public double maxDrawdownPct;
         public boolean recovered;
@@ -40,17 +44,64 @@ public class PortfolioOptimizerEngine {
         public boolean targetAchieved = true; // false یعنی هیچ ترکیبی به بازده هدف کاربر نرسید
         public int alignedDays;
 
-        // نمونه‌ای از ترکیب‌های بررسی‌شده (حداکثر ~۴۰۰ نقطه) برای رسم نقشه ریسک/بازده
+        // نمونه‌ای از ترکیب‌های بررسی‌شده (حداکثر ~۴۰۰ نقطه) برای رسم نقشه ریسک/بازده — فقط در جست‌وجوها پر می‌شود
         public double[] cloudReturnPct = new double[0];
         public double[] cloudVolPct = new double[0];
     }
 
+    private interface Scorer {
+        double score(double annReturnPct, double annVolPct, double sharpe, double cvar95Pct);
+    }
+
+    /** پیشنهاد وزن بر اساس سبک ریسک کاربر (محافظه‌کار/متعادل/تهاجمی) — برای روش مونت‌کارلو. */
     public static Result optimize(PortfolioReturns.PerSymbolAligned aligned,
                                    double riskFreeRateAnnualPct,
                                    double targetReturnAnnualPct,
                                    String style,
                                    int numSimulations,
                                    long seed) {
+        return search(aligned, riskFreeRateAnnualPct, targetReturnAnnualPct, numSimulations, seed,
+                (ret, vol, sharpe, cvar) -> {
+                    if (STYLE_CONSERVATIVE.equals(style)) return -vol;
+                    if (STYLE_AGGRESSIVE.equals(style)) return ret;
+                    return sharpe; // balanced (پیش‌فرض)
+                });
+    }
+
+    /** پیشنهاد وزن با کمینه‌سازی CVaR ۹۵٪ (میانگین بدترین ۵٪ روزها) — برای روش CVaR. */
+    public static Result optimizeMinCvar(PortfolioReturns.PerSymbolAligned aligned,
+                                          double riskFreeRateAnnualPct,
+                                          double targetReturnAnnualPct,
+                                          int numSimulations,
+                                          long seed) {
+        // cvar95Pct عددی منفی است (زیان)؛ بیشینه‌کردن آن یعنی کمینه‌کردن اندازه زیان دنباله.
+        return search(aligned, riskFreeRateAnnualPct, targetReturnAnnualPct, numSimulations, seed,
+                (ret, vol, sharpe, cvar) -> cvar);
+    }
+
+    /** شاخص‌های کامل ریسک/بازده را برای یک بردار وزنی از پیش‌تعیین‌شده (بدون جست‌وجو) محاسبه می‌کند. */
+    public static Result evaluateFixed(PortfolioReturns.PerSymbolAligned aligned,
+                                        double[] weights,
+                                        double riskFreeRateAnnualPct,
+                                        long seed) {
+        Result res = new Result();
+        res.symbols = aligned.symbols;
+        res.alignedDays = aligned.alignedDays;
+
+        if (aligned.symbols.length == 0 || aligned.returns[0].length < 30) return res;
+
+        int days = aligned.returns[0].length;
+        res.weights = weights;
+        finalizeResult(res, weights, aligned.returns, days, riskFreeRateAnnualPct, seed);
+        return res;
+    }
+
+    private static Result search(PortfolioReturns.PerSymbolAligned aligned,
+                                  double riskFreeRateAnnualPct,
+                                  double targetReturnAnnualPct,
+                                  int numSimulations,
+                                  long seed,
+                                  Scorer scorer) {
         Result res = new Result();
         res.symbols = aligned.symbols;
         res.alignedDays = aligned.alignedDays;
@@ -68,16 +119,18 @@ public class PortfolioOptimizerEngine {
         double[] maxReturnWeights = null;
 
         int cloudEvery = Math.max(1, numSimulations / 400);
-        java.util.List<Double> cloudReturn = new java.util.ArrayList<>();
-        java.util.List<Double> cloudVol = new java.util.ArrayList<>();
+        List<Double> cloudReturn = new ArrayList<>();
+        List<Double> cloudVol = new ArrayList<>();
 
         Random rnd = new Random(seed);
         for (int s = 0; s < numSimulations; s++) {
             double[] w = randomSimplex(nAssets, rnd);
-            double[] stats = portfolioAnnualStats(w, aligned.returns, days);
+            double[] combined = combineDaily(w, aligned.returns, days);
+            double[] stats = annualStats(combined, days);
             double annReturnPct = stats[0];
             double annVolPct = stats[1];
             double sharpe = annVolPct > 1e-9 ? (annReturnPct - riskFreeRateAnnualPct) / annVolPct : 0;
+            double cvar95 = historicalCvar95(combined);
 
             if (s % cloudEvery == 0) {
                 cloudReturn.add(annReturnPct);
@@ -92,7 +145,7 @@ public class PortfolioOptimizerEngine {
 
             if (hasTarget && annReturnPct < targetReturnAnnualPct) continue;
 
-            double score = styleScore(style, annReturnPct, annVolPct, sharpe);
+            double score = scorer.score(annReturnPct, annVolPct, sharpe, cvar95);
             if (score > bestScore) {
                 bestScore = score;
                 bestWeights = w;
@@ -104,13 +157,14 @@ public class PortfolioOptimizerEngine {
 
         // اگر هیچ ترکیبی به بازده هدف نرسید، بدون فیلتر هدف دوباره امتیازدهی کن
         if (bestWeights == null) {
-            res.targetAchieved = !hasTarget; // اگر اصلاً هدفی وارد نشده بود، این حالت طبیعی است نه شکست
+            res.targetAchieved = !hasTarget;
             rnd = new Random(seed);
             for (int s = 0; s < numSimulations; s++) {
                 double[] w = randomSimplex(nAssets, rnd);
-                double[] stats = portfolioAnnualStats(w, aligned.returns, days);
-                double score = styleScore(style, stats[0], stats[1],
-                        stats[1] > 1e-9 ? (stats[0] - riskFreeRateAnnualPct) / stats[1] : 0);
+                double[] combined = combineDaily(w, aligned.returns, days);
+                double[] stats = annualStats(combined, days);
+                double sharpe = stats[1] > 1e-9 ? (stats[0] - riskFreeRateAnnualPct) / stats[1] : 0;
+                double score = scorer.score(stats[0], stats[1], sharpe, historicalCvar95(combined));
                 if (score > bestScore) {
                     bestScore = score;
                     bestWeights = w;
@@ -121,20 +175,8 @@ public class PortfolioOptimizerEngine {
         if (bestWeights == null) return res;
 
         res.weights = bestWeights;
-        double[] finalStats = portfolioAnnualStats(bestWeights, aligned.returns, days);
-        res.annualizedReturnPct = finalStats[0];
-        res.annualizedVolPct = finalStats[1];
-        res.sharpe = res.annualizedVolPct > 1e-9
-                ? (res.annualizedReturnPct - riskFreeRateAnnualPct) / res.annualizedVolPct : 0;
         res.bestPossibleSharpe = bestPossibleSharpeFound;
-
-        double[] combinedDaily = combineDaily(bestWeights, aligned.returns, days);
-        computeDrawdownAndRecovery(combinedDaily, res);
-
-        MonteCarloEngine.Result mc = MonteCarloEngine.simulate(combinedDaily, 252, 3000, seed + 1);
-        res.medianForwardReturnPct = mc.medianPct;
-        res.p5ForwardReturnPct = mc.p5Pct;
-        res.p95ForwardReturnPct = mc.p95Pct;
+        finalizeResult(res, bestWeights, aligned.returns, days, riskFreeRateAnnualPct, seed);
 
         if (maxReturnWeights != null) {
             double[] maxReturnDaily = combineDaily(maxReturnWeights, aligned.returns, days);
@@ -145,10 +187,26 @@ public class PortfolioOptimizerEngine {
         return res;
     }
 
-    private static double styleScore(String style, double annReturnPct, double annVolPct, double sharpe) {
-        if (STYLE_CONSERVATIVE.equals(style)) return -annVolPct;
-        if (STYLE_AGGRESSIVE.equals(style)) return annReturnPct;
-        return sharpe; // balanced (پیش‌فرض)
+    /** بازده/نوسان/شارپ/CVaR/حداکثر افت/ریکاوری/شبیه‌سازی رو به جلو را برای یک بردار وزنی ثابت پر می‌کند. */
+    private static void finalizeResult(Result res, double[] weights, double[][] returnsBySymbol, int days,
+                                        double riskFreeRateAnnualPct, long seed) {
+        double[] combined = combineDaily(weights, returnsBySymbol, days);
+        double[] stats = annualStats(combined, days);
+        res.annualizedReturnPct = stats[0];
+        res.annualizedVolPct = stats[1];
+        res.sharpe = res.annualizedVolPct > 1e-9
+                ? (res.annualizedReturnPct - riskFreeRateAnnualPct) / res.annualizedVolPct : 0;
+        res.cvar95Pct = historicalCvar95(combined);
+        if (res.bestPossibleSharpe == 0) res.bestPossibleSharpe = res.sharpe;
+
+        computeDrawdownAndRecovery(combined, res);
+
+        MonteCarloEngine.Result mc = MonteCarloEngine.simulate(combined, 252, 3000, seed + 1);
+        res.medianForwardReturnPct = mc.medianPct;
+        res.p5ForwardReturnPct = mc.p5Pct;
+        res.p95ForwardReturnPct = mc.p95Pct;
+
+        if (res.bestPossibleMedianReturnPct == 0) res.bestPossibleMedianReturnPct = mc.medianPct;
     }
 
     private static double[] combineDaily(double[] weights, double[][] returnsBySymbol, int days) {
@@ -161,10 +219,8 @@ public class PortfolioOptimizerEngine {
         return combined;
     }
 
-    /** {بازده سالانه‌شده٪, نوسان سالانه‌شده٪} برای یک ترکیب وزنی معین. */
-    private static double[] portfolioAnnualStats(double[] weights, double[][] returnsBySymbol, int days) {
-        double[] combined = combineDaily(weights, returnsBySymbol, days);
-
+    /** {بازده سالانه‌شده٪, نوسان سالانه‌شده٪} برای یک سری بازده روزانه ترکیبی. */
+    private static double[] annualStats(double[] combined, int days) {
         double mean = 0;
         for (double r : combined) mean += r;
         mean /= days;
@@ -177,6 +233,16 @@ public class PortfolioOptimizerEngine {
         double annReturnPct = (Math.pow(1 + mean, 252) - 1) * 100.0;
         double annVolPct = stdDev * Math.sqrt(252) * 100.0;
         return new double[]{annReturnPct, annVolPct};
+    }
+
+    /** CVaR ۹۵٪ تاریخی (میانگین بدترین ۵٪ روزها) به‌صورت درصد روزانه — عددی منفی. */
+    private static double historicalCvar95(double[] combined) {
+        double[] sorted = combined.clone();
+        Arrays.sort(sorted);
+        int varIndex = Math.max(0, (int) Math.floor(0.05 * sorted.length) - 1);
+        double tailSum = 0;
+        for (int i = 0; i <= varIndex; i++) tailSum += sorted[i];
+        return (tailSum / (varIndex + 1)) * 100.0;
     }
 
     /** حداکثر افت (peak-to-trough) و تعداد روزهای بازگشت به اوج قبلی، روی منحنی ارزش خالص بک‌تست‌شده. */
@@ -220,7 +286,7 @@ public class PortfolioOptimizerEngine {
         }
     }
 
-    private static double[] toArray(java.util.List<Double> list) {
+    private static double[] toArray(List<Double> list) {
         double[] arr = new double[list.size()];
         for (int i = 0; i < arr.length; i++) arr[i] = list.get(i);
         return arr;
