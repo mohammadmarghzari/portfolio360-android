@@ -70,25 +70,63 @@
                 android:orientation="vertical"
                 android:padding="18dp">
 
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/sub_card_number_label"
-                    android:textColor="@color/chart_baseline"
-                    android:textSize="12sp" />
+                <!-- کارت بانکی -->
+                <FrameLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="190dp"
+                    android:background="@drawable/bg_bank_card"
+                    android:padding="20dp">
 
-                <TextView
-                    android:id="@+id/sub_card_number"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="6dp"
-                    android:text="@string/sub_card_number_value"
-                    android:textColor="@color/premium_gold"
-                    android:textSize="20sp"
-                    android:textStyle="bold"
-                    android:letterSpacing="0.06"
-                    android:fontFamily="monospace"
-                    android:textIsSelectable="true" />
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="top|start"
+                        android:text="@string/sub_bank_name"
+                        android:textColor="#FFFFFF"
+                        android:textSize="15sp"
+                        android:textStyle="bold" />
+
+                    <View
+                        android:layout_width="38dp"
+                        android:layout_height="28dp"
+                        android:layout_gravity="top|end"
+                        android:layout_marginTop="3dp"
+                        android:background="@drawable/bg_card_chip" />
+
+                    <TextView
+                        android:id="@+id/sub_card_number"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center"
+                        android:gravity="center"
+                        android:textDirection="ltr"
+                        android:text="@string/sub_card_number_value"
+                        android:textColor="#FFFFFF"
+                        android:textSize="22sp"
+                        android:textStyle="bold"
+                        android:letterSpacing="0.08"
+                        android:fontFamily="monospace"
+                        android:textIsSelectable="true" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="bottom|start"
+                        android:text="@string/sub_card_holder_name"
+                        android:textColor="#D8DEEC"
+                        android:textSize="13sp"
+                        android:letterSpacing="0.03" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="bottom|end"
+                        android:text="@string/sub_card_network"
+                        android:textColor="@color/premium_gold"
+                        android:textSize="12sp"
+                        android:textStyle="bold" />
+
+                </FrameLayout>
 
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/btn_copy_card"

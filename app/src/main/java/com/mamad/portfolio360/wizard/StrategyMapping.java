@@ -24,7 +24,7 @@ public class StrategyMapping {
                         "covered_call",
                         "کاوردکال (Covered Call)",
                         "با فروش کال روی دارایی خود، پرمیوم دریافت کنید.",
-                        true));
+                        true, true));
                 break;
 
             case OUTLOOK_BEARISH:
@@ -32,7 +32,7 @@ public class StrategyMapping {
                         "protective_put",
                         "پروتکتیو پوت (Protective Put)",
                         "با خرید پوت، دارایی خود را در برابر افت شدید بیمه کنید.",
-                        true));
+                        true, true));
                 break;
 
             case OUTLOOK_NEUTRAL:
@@ -58,7 +58,7 @@ public class StrategyMapping {
                         "long_strangle",
                         "استرنگل بلند (Long Strangle)",
                         "با هزینه کمتر، از نوسان شدید قیمت در هر جهتی سود ببرید.",
-                        true));
+                        true, true));
                 break;
 
             case OUTLOOK_BULLISH:

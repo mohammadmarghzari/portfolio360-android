@@ -13,6 +13,8 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
 import com.mamad.portfolio360.R;
+import com.mamad.portfolio360.premium.SubscriptionInfoFragment;
+import com.mamad.portfolio360.premium.SubscriptionManager;
 
 import java.util.List;
 
@@ -52,7 +54,17 @@ public class StrategyListFragment extends Fragment {
 
             title.setText(option.title);
             description.setText(option.description);
-            badge.setVisibility(option.implemented ? View.GONE : View.VISIBLE);
+
+            boolean locked = option.requiresSubscription && !SubscriptionManager.isActive(requireContext());
+            if (!option.implemented) {
+                badge.setVisibility(View.VISIBLE);
+                badge.setText(R.string.strategy_coming_soon);
+            } else if (locked) {
+                badge.setVisibility(View.VISIBLE);
+                badge.setText(R.string.premium_locked_badge);
+            } else {
+                badge.setVisibility(View.GONE);
+            }
 
             card.setOnClickListener(v -> openContractPicker(option));
 
@@ -62,11 +74,21 @@ public class StrategyListFragment extends Fragment {
         return view;
     }
 
-    /** کاربر را به زنجیره آپشن می‌برد تا قرارداد واقعی را انتخاب کند. */
+    /** کاربر را به زنجیره آپشن می‌برد تا قرارداد واقعی را انتخاب کند؛ استراتژی‌های اشتراکی را به صفحه خرید هدایت می‌کند. */
     private void openContractPicker(StrategyOption option) {
         if (!option.implemented) {
             Toast.makeText(getContext(), R.string.strategy_coming_soon_message,
                     Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        if (option.requiresSubscription && !SubscriptionManager.isActive(requireContext())) {
+            Toast.makeText(getContext(), R.string.premium_locked_toast, Toast.LENGTH_SHORT).show();
+            requireActivity().getSupportFragmentManager()
+                    .beginTransaction()
+                    .replace(R.id.fragment_container, new SubscriptionInfoFragment())
+                    .addToBackStack(null)
+                    .commit();
             return;
         }
 

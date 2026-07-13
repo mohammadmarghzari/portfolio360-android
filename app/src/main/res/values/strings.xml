@@ -160,6 +160,7 @@
     <string name="premium_item_portfolio_title">ابزارهای حرفه‌ای پرتفوی</string>
     <string name="premium_item_portfolio_desc">پیشنهاد وزن پرتفوی با CVaR، مونت‌کارلو، آزمون استرس و بارِبل طالب</string>
     <string name="premium_locked_toast">این بخش ویژه اعضای اشتراکی است.</string>
+    <string name="premium_locked_badge">🔒 اشتراکی</string>
 
     <string name="sub_title">خرید اشتراک</string>
     <string name="sub_subtitle">با تهیه اشتراک، به کاوردکال، پروتکتیو پوت، لانگ استرنگل و ابزارهای حرفه‌ای پرتفوی دسترسی کامل داری.</string>
@@ -174,13 +175,32 @@
     <string name="sub_badge_popular">پرطرفدار</string>
     <string name="sub_badge_best_value">به‌صرفه‌ترین</string>
     <string name="sub_payment_title">پرداخت و فعال‌سازی</string>
-    <string name="sub_card_number_label">شماره کارت جهت واریز</string>
-    <string name="sub_card_number_value">۵۸۵۹ ۴۷۱۱ ۲۳۰۲ ۹۳۶۹</string>
+    <string name="sub_bank_name">بانک خاورمیانه</string>
+    <string name="sub_card_number_value">5859 4711 2302 9369</string>
+    <string name="sub_card_holder_name">محمد مرغزاری</string>
+    <string name="sub_card_network">شتاب</string>
     <string name="sub_copy_card">کپی شماره کارت</string>
     <string name="sub_card_copied">شماره کارت کپی شد</string>
     <string name="sub_steps">۱. مبلغ پلن موردنظرت رو به شماره کارت بالا واریز کن.\n۲. عکس رسید واریز رو با دکمه زیر برای ما توی تلگرام بفرست (همراه با ایمیل یا شماره‌ای که توی اپ باهاش ثبت‌نام کردی).\n۳. پس از بررسی و تأیید رسید، اشتراکت در همون بازه‌ای که پرداخت کردی فعال می‌شه.</string>
     <string name="sub_send_receipt_button">ارسال رسید در تلگرام</string>
     <string name="sub_note">فعال‌سازی اشتراک فعلاً به‌صورت دستی و پس از بررسی رسید انجام می‌شود و معمولاً چند ساعت زمان می‌برد.</string>
+
+    <string name="login_subtitle">برای استفاده از اپ، وارد حساب خودت شو</string>
+    <string name="login_title_signup">ساخت حساب کاربری</string>
+    <string name="login_title_login">ورود به حساب</string>
+    <string name="login_email_hint">ایمیل</string>
+    <string name="login_password_hint">رمز عبور</string>
+    <string name="login_button_signup">ساخت حساب و ورود</string>
+    <string name="login_button_login">ورود</string>
+    <string name="login_switch_to_login">قبلاً حساب ساختی؟ وارد شو</string>
+    <string name="login_switch_to_signup">حساب نداری؟ بساز</string>
+    <string name="login_google_button">ورود با جیمیل</string>
+    <string name="login_note">ورود با جیمیل پس از تکمیل راه‌اندازی، فعال می‌شود.</string>
+    <string name="login_google_soon">ورود با جیمیل هنوز فعال نشده — به‌زودی اضافه می‌شود.</string>
+    <string name="login_error_invalid_email">یک ایمیل معتبر وارد کن.</string>
+    <string name="login_error_short_password">رمز عبور باید حداقل ۶ کاراکتر باشد.</string>
+    <string name="login_error_account_exists">قبلاً با این ایمیل روی این گوشی حساب ساخته شده — وارد شو.</string>
+    <string name="login_error_invalid_credentials">ایمیل یا رمز عبور اشتباه است.</string>
 
     <string name="portfolio_setup_title">بهینه‌سازی پرتفوی</string>
     <string name="portfolio_none_selected">هنوز دارایی‌ای انتخاب نشده</string>
