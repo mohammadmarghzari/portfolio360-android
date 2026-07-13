@@ -19,6 +19,7 @@ import androidx.cardview.widget.CardView;
 import androidx.fragment.app.Fragment;
 
 import com.google.android.material.button.MaterialButton;
+import com.google.firebase.auth.FirebaseAuth;
 import com.mamad.portfolio360.R;
 
 import java.text.SimpleDateFormat;
@@ -27,8 +28,9 @@ import java.util.Locale;
 
 /**
  * صفحه راهنمای خرید اشتراک: پلن‌ها، شماره کارت، و دکمه ارسال رسید به ربات تلگرام.
- * تأیید نهایی اشتراک فعلاً دستی است — مدیر پس از بررسی رسید در تلگرام، اشتراک
- * کاربر را فعال می‌کند (تا وقتی این فرایند از طریق Firebase خودکار شود).
+ * دکمه ارسال رسید با شناسه کاربری (uid) به ربات وصل می‌شود تا سرور بداند تأیید
+ * مدیر برای کدام حساب است؛ تأیید و فعال‌سازی نهایی در تلگرام و به‌صورت خودکار
+ * (از طریق Cloud Function) انجام می‌شود.
  */
 public class SubscriptionInfoFragment extends Fragment {
 
@@ -56,6 +58,9 @@ public class SubscriptionInfoFragment extends Fragment {
 
         bindStatusBanner(view);
         buildPlanCards(view);
+        SubscriptionManager.refresh(() -> {
+            if (isAdded()) bindStatusBanner(view);
+        });
 
         TextView cardNumber = view.findViewById(R.id.sub_card_number);
         MaterialButton copyBtn = view.findViewById(R.id.btn_copy_card);
@@ -68,7 +73,9 @@ public class SubscriptionInfoFragment extends Fragment {
 
         MaterialButton sendReceiptBtn = view.findViewById(R.id.btn_send_receipt);
         sendReceiptBtn.setOnClickListener(v -> {
-            Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(TELEGRAM_BOT_URL));
+            String uid = FirebaseAuth.getInstance().getUid();
+            String url = uid != null ? TELEGRAM_BOT_URL + "?start=" + uid : TELEGRAM_BOT_URL;
+            Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
             startActivity(intent);
         });
 

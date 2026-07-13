@@ -1,0 +1,13 @@
+{
+  "name": "portfolio360-functions",
+  "description": "Telegram receipt-approval relay for Portfolio360 subscriptions",
+  "engines": {
+    "node": "20"
+  },
+  "main": "index.js",
+  "dependencies": {
+    "firebase-admin": "^12.5.0",
+    "firebase-functions": "^5.1.1"
+  },
+  "private": true
+}

@@ -1,0 +1,17 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // هر کاربر فقط می‌تواند وضعیت اشتراک خودش را بخواند؛ نوشتن فقط از طریق
+    // Cloud Function (با Admin SDK، که این قوانین را دور می‌زند) مجاز است.
+    match /subscriptions/{uid} {
+      allow read: if request.auth != null && request.auth.uid == uid;
+      allow write: if false;
+    }
+
+    // نگاشت چت تلگرام به uid؛ فقط سمت سرور خوانده/نوشته می‌شود.
+    match /telegram_links/{chatId} {
+      allow read, write: if false;
+    }
+  }
+}

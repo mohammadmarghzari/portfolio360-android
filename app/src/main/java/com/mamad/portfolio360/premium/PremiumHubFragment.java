@@ -52,6 +52,9 @@ public class PremiumHubFragment extends Fragment {
         View view = inflater.inflate(R.layout.fragment_premium_hub, container, false);
 
         bindStatusBanner(view);
+        SubscriptionManager.refresh(() -> {
+            if (isAdded()) bindStatusBanner(view);
+        });
 
         MaterialButton manageBtn = view.findViewById(R.id.btn_manage_subscription);
         manageBtn.setOnClickListener(v -> navigateTo(new SubscriptionInfoFragment()));

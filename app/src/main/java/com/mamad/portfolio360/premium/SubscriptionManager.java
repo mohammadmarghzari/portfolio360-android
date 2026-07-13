@@ -1,35 +1,54 @@
 package com.mamad.portfolio360.premium;
 
 import android.content.Context;
-import android.content.SharedPreferences;
+
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.firestore.FirebaseFirestore;
 
 /**
- * وضعیت اشتراک کاربر را نگه می‌دارد. فعلاً به‌صورت محلی (SharedPreferences) کار
- * می‌کند تا رابط کاربری بخش اشتراکی از همین حالا قابل استفاده باشد؛ وقتی پروژه
- * Firebase وصل شود، پیاده‌سازی این کلاس با خواندن وضعیت از Firestore (بر اساس
- * کاربر واردشده با جیمیل) جایگزین می‌شود، بدون نیاز به تغییر کدهای فراخواننده.
+ * وضعیت اشتراک کاربر واردشده را نگه می‌دارد. منبع واقعی، سند
+ * subscriptions/{uid} در Firestore است که فقط تابع سرور (پس از تأیید رسید در
+ * تلگرام) آن را می‌نویسد؛ این کلاس فقط می‌خواند و در حافظه کش می‌کند تا
+ * بررسی وضعیت (isActive) در همه‌جای اپ همگام و سریع باشد.
  */
 public class SubscriptionManager {
 
-    private static final String PREFS_NAME = "subscription_prefs";
-    private static final String KEY_EXPIRES_AT = "expires_at_millis";
+    private static volatile boolean cachedActive = false;
+    private static volatile long cachedExpiresAt = 0L;
 
     public static boolean isActive(Context context) {
-        long expiresAt = prefs(context).getLong(KEY_EXPIRES_AT, 0L);
-        return expiresAt > System.currentTimeMillis();
+        return cachedActive && cachedExpiresAt > System.currentTimeMillis();
     }
 
     public static long expiresAtMillis(Context context) {
-        return prefs(context).getLong(KEY_EXPIRES_AT, 0L);
+        return cachedExpiresAt;
     }
 
-    /** برای استفاده‌ی مدیر (تأیید دستی رسید) تا وقتی تأیید اشتراک از طریق Firestore وصل شود. */
-    public static void activateForDays(Context context, int days) {
-        long newExpiry = System.currentTimeMillis() + days * 24L * 60 * 60 * 1000;
-        prefs(context).edit().putLong(KEY_EXPIRES_AT, newExpiry).apply();
-    }
+    /** کش محلی را از روی Firestore به‌روز می‌کند؛ onDone (اگر داده شود) در هر حالت صدا زده می‌شود. */
+    public static void refresh(Runnable onDone) {
+        String uid = FirebaseAuth.getInstance().getUid();
+        if (uid == null) {
+            cachedActive = false;
+            cachedExpiresAt = 0L;
+            if (onDone != null) onDone.run();
+            return;
+        }
 
-    private static SharedPreferences prefs(Context context) {
-        return context.getApplicationContext().getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
+        FirebaseFirestore.getInstance().collection("subscriptions").document(uid).get()
+                .addOnSuccessListener(doc -> {
+                    if (doc != null && doc.exists()) {
+                        Boolean active = doc.getBoolean("active");
+                        Long expiresAt = doc.getLong("expiresAt");
+                        cachedActive = active != null && active;
+                        cachedExpiresAt = expiresAt != null ? expiresAt : 0L;
+                    } else {
+                        cachedActive = false;
+                        cachedExpiresAt = 0L;
+                    }
+                    if (onDone != null) onDone.run();
+                })
+                .addOnFailureListener(e -> {
+                    if (onDone != null) onDone.run();
+                });
     }
 }
