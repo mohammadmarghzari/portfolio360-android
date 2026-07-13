@@ -80,6 +80,8 @@
                 <com.google.android.material.textfield.TextInputLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    app:boxStrokeColor="@color/chart_baseline"
+                    app:hintTextColor="@color/chart_baseline"
                     style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
 
                     <com.google.android.material.textfield.TextInputEditText
@@ -89,6 +91,8 @@
                         android:minLines="4"
                         android:gravity="top|start"
                         android:hint="@string/support_feedback_hint"
+                        android:textColor="@color/chart_text"
+                        android:textColorHint="@color/chart_baseline"
                         android:inputType="textMultiLine" />
 
                 </com.google.android.material.textfield.TextInputLayout>
@@ -111,7 +115,8 @@
             android:layout_marginTop="24dp"
             android:layout_gravity="center_horizontal"
             android:text="@string/support_youtube_hint"
-            android:textColor="@color/chart_baseline"
+            android:textColor="@color/blueprint_text"
+            android:alpha="0.6"
             android:textSize="11sp"
             android:gravity="center" />
 
