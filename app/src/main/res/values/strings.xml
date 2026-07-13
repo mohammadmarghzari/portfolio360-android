@@ -90,6 +90,7 @@
     <string name="chain_greeks_line">%1$s / %2$s / %3$s / %4$s</string>
 
     <string name="chain_hint_pick_call">یک قرارداد کال (ستون سبز) را برای فروش انتخاب کنید</string>
+    <string name="chain_hint_pick_call_buy">یک قرارداد کال (ستون سبز) را برای خرید انتخاب کنید</string>
     <string name="chain_hint_pick_first_call">پایه اول: یک کال برای خرید انتخاب کنید</string>
     <string name="chain_hint_pick_second_call">پایه دوم: یک کال دیگر برای فروش انتخاب کنید (پایه اول: اعمال %1$s)</string>
     <string name="chain_hint_pick_straddle_row">روی یک ردیف بزنید تا کال و پوت هم‌قیمت آن با هم انتخاب شوند</string>

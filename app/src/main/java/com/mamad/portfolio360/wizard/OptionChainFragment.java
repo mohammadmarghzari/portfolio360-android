@@ -191,7 +191,12 @@ public class OptionChainFragment extends Fragment {
         if (isTwoLegStrategy()) {
             return getString(R.string.chain_hint_pick_first_call);
         }
-        return getString(isPutStrategy() ? R.string.chain_hint_pick_put : R.string.chain_hint_pick_call);
+        if (isPutStrategy()) {
+            return getString(R.string.chain_hint_pick_put);
+        }
+        return getString("covered_call".equals(selectForStrategy)
+                ? R.string.chain_hint_pick_call
+                : R.string.chain_hint_pick_call_buy);
     }
 
     private boolean isTwoLegStrategy() {
