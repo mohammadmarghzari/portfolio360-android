@@ -225,6 +225,20 @@
     <string name="admin_activation_failed">فعال‌سازی ناموفق بود — دوباره امتحان کن</string>
     <string name="admin_note">این بخش فقط برای حساب مدیر قابل مشاهده است.</string>
 
+    <string name="profile_menu_title">پروفایل من</string>
+    <string name="profile_title">پروفایل من</string>
+    <string name="profile_avatar_desc">عکس پروفایل</string>
+    <string name="profile_change_photo_hint">برای تغییر عکس، لمس کن</string>
+    <string name="profile_name_label">نام نمایشی</string>
+    <string name="profile_name_hint">مثلاً: محمد</string>
+    <string name="profile_save_name_button">ذخیره نام</string>
+    <string name="profile_email_label">ایمیل حساب</string>
+    <string name="profile_name_empty">لطفاً یه نام وارد کن</string>
+    <string name="profile_saved">نام ذخیره شد</string>
+    <string name="profile_photo_saved">عکس پروفایل ذخیره شد</string>
+    <string name="profile_save_failed">ذخیره ناموفق بود — اتصال اینترنتت رو چک کن</string>
+    <string name="profile_sign_out_button">خروج از حساب</string>
+
     <string name="login_subtitle">برای استفاده از اپ، وارد حساب خودت شو</string>
     <string name="login_title_signup">ساخت حساب کاربری</string>
     <string name="login_title_login">ورود به حساب</string>

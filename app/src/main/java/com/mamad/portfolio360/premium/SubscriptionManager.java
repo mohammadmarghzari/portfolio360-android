@@ -15,6 +15,7 @@ public class SubscriptionManager {
 
     private static volatile boolean cachedActive = false;
     private static volatile long cachedExpiresAt = 0L;
+    private static volatile String lastError = null;
 
     public static boolean isActive(Context context) {
         return cachedActive && cachedExpiresAt > System.currentTimeMillis();
@@ -24,18 +25,25 @@ public class SubscriptionManager {
         return cachedExpiresAt;
     }
 
+    /** پیام آخرین خطای واکشی از Firestore (برای عیب‌یابی)، یا null اگر آخرین واکشی موفق بود. */
+    public static String lastError() {
+        return lastError;
+    }
+
     /** کش محلی را از روی Firestore به‌روز می‌کند؛ onDone (اگر داده شود) در هر حالت صدا زده می‌شود. */
     public static void refresh(Runnable onDone) {
         String uid = FirebaseAuth.getInstance().getUid();
         if (uid == null) {
             cachedActive = false;
             cachedExpiresAt = 0L;
+            lastError = "کاربر واردنشده (uid=null)";
             if (onDone != null) onDone.run();
             return;
         }
 
         FirebaseFirestore.getInstance().collection("subscriptions").document(uid).get()
                 .addOnSuccessListener(doc -> {
+                    lastError = null;
                     if (doc != null && doc.exists()) {
                         Boolean active = doc.getBoolean("active");
                         Long expiresAt = doc.getLong("expiresAt");
@@ -48,6 +56,7 @@ public class SubscriptionManager {
                     if (onDone != null) onDone.run();
                 })
                 .addOnFailureListener(e -> {
+                    lastError = e.getMessage();
                     if (onDone != null) onDone.run();
                 });
     }

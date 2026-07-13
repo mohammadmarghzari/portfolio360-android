@@ -2,6 +2,7 @@ package com.mamad.portfolio360.admin;
 
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.SetOptions;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -12,7 +13,10 @@ import java.util.Map;
  */
 public class UserDirectory {
 
-    /** هر بار که کاربر لاگین‌شده اپ را باز می‌کند، رکورد خودش را به‌روز نگه می‌دارد. */
+    /**
+     * هر بار که کاربر لاگین‌شده اپ را باز می‌کند، رکورد خودش را به‌روز نگه می‌دارد.
+     * با merge می‌نویسد تا فیلدهای دیگر سند (مثل عکس/نام پروفایل) پاک نشوند.
+     */
     public static void syncCurrentUser() {
         if (FirebaseAuth.getInstance().getCurrentUser() == null) return;
         String uid = FirebaseAuth.getInstance().getUid();
@@ -21,6 +25,6 @@ public class UserDirectory {
 
         Map<String, Object> data = new HashMap<>();
         data.put("email", email.toLowerCase());
-        FirebaseFirestore.getInstance().collection("users").document(uid).set(data);
+        FirebaseFirestore.getInstance().collection("users").document(uid).set(data, SetOptions.merge());
     }
 }

@@ -59,7 +59,11 @@ public class SubscriptionInfoFragment extends Fragment {
         bindStatusBanner(view);
         buildPlanCards(view);
         SubscriptionManager.refresh(() -> {
-            if (isAdded()) bindStatusBanner(view);
+            if (!isAdded()) return;
+            bindStatusBanner(view);
+            if (SubscriptionManager.lastError() != null) {
+                Toast.makeText(getContext(), "خطای بررسی اشتراک: " + SubscriptionManager.lastError(), Toast.LENGTH_LONG).show();
+            }
         });
 
         TextView cardNumber = view.findViewById(R.id.sub_card_number);

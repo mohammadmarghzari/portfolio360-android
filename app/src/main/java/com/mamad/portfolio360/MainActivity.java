@@ -13,6 +13,7 @@ import com.mamad.portfolio360.admin.AdminAccess;
 import com.mamad.portfolio360.admin.AdminPanelFragment;
 import com.mamad.portfolio360.admin.UserDirectory;
 import com.mamad.portfolio360.premium.SubscriptionManager;
+import com.mamad.portfolio360.profile.ProfileFragment;
 import com.mamad.portfolio360.support.SupportFragment;
 import com.mamad.portfolio360.wizard.HomeFragment;
 
@@ -46,10 +47,15 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        if (AdminAccess.isAdmin()) {
-            getMenuInflater().inflate(R.menu.main_menu, menu);
-        }
+        getMenuInflater().inflate(R.menu.main_menu, menu);
         return true;
+    }
+
+    @Override
+    public boolean onPrepareOptionsMenu(Menu menu) {
+        MenuItem adminItem = menu.findItem(R.id.menu_admin_panel);
+        if (adminItem != null) adminItem.setVisible(AdminAccess.isAdmin());
+        return super.onPrepareOptionsMenu(menu);
     }
 
     @Override
@@ -58,6 +64,14 @@ public class MainActivity extends AppCompatActivity {
             getSupportFragmentManager()
                     .beginTransaction()
                     .replace(R.id.fragment_container, new AdminPanelFragment())
+                    .addToBackStack(null)
+                    .commit();
+            return true;
+        }
+        if (item.getItemId() == R.id.menu_profile) {
+            getSupportFragmentManager()
+                    .beginTransaction()
+                    .replace(R.id.fragment_container, new ProfileFragment())
                     .addToBackStack(null)
                     .commit();
             return true;
