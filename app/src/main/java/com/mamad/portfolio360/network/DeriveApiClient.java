@@ -12,6 +12,7 @@ import org.json.JSONObject;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import okhttp3.Call;
 import okhttp3.Callback;
@@ -22,11 +23,8 @@ import okhttp3.RequestBody;
 import okhttp3.Response;
 
 /**
- * کلاینت ساده برای اتصال به API عمومی Derive.xyz (سابق Lyra Chain).
- * مستندات: https://docs.derive.xyz
- *
- * نکته: این کلاینت فقط از endpointهای عمومی (public) استفاده می‌کند که نیاز به
- * احراز هویت یا کلید API ندارند.
+ * کلاینت API عمومی Derive.xyz (سابق Lyra).
+ * فقط endpointهای عمومی؛ بدون نیاز به کلید یا احراز هویت.
  */
 public class DeriveApiClient {
 
@@ -36,75 +34,45 @@ public class DeriveApiClient {
     private static final OkHttpClient client = new OkHttpClient();
     private static final Handler mainHandler = new Handler(Looper.getMainLooper());
 
+    // ---------- کال‌بک‌ها ----------
+
     public interface PriceCallback {
         void onSuccess(double spotPrice);
         void onError(String message);
     }
 
-    public interface InstrumentsCallback {
-        void onSuccess(List<DeriveInstrument> instruments);
+    public interface ChainCallback {
+        void onSuccess(List<OptionContract> contracts);
         void onError(String message);
     }
 
-    /**
-     * قیمت لحظه‌ای (spot) دارایی را از طریق تیکر قرارداد دائمی (Perpetual) می‌گیرد.
-     * برای اتریوم، نام قرارداد دائمی معمولاً "ETH-PERP" است.
-     */
+    public interface GreeksCallback {
+        /** وقتی همه تیکرها (موفق یا ناموفق) تمام شدند صدا زده می‌شود. */
+        void onComplete(String debugSampleJson);
+    }
+
+    // ---------- قیمت لحظه‌ای ----------
+
     public static void fetchSpotPrice(String currency, PriceCallback callback) {
-        String instrumentName = currency.toUpperCase() + "-PERP";
-        fetchTickerField(instrumentName, "index_price", callback);
-    }
-
-    /**
-     * پرمیوم لحظه‌ای (mark price) یک قرارداد آپشن مشخص را می‌گیرد.
-     */
-    public static void fetchMarkPrice(String instrumentName, PriceCallback callback) {
-        fetchTickerField(instrumentName, "mark_price", callback);
-    }
-
-    private static void fetchTickerField(String instrumentName, String fieldName, PriceCallback callback) {
         JSONObject body = new JSONObject();
         try {
-            body.put("instrument_name", instrumentName);
+            body.put("instrument_name", currency.toUpperCase() + "-PERP");
         } catch (JSONException e) {
-            postError(callback, "خطا در ساخت درخواست");
+            post(() -> callback.onError("خطا در ساخت درخواست"));
             return;
         }
 
-        Request request = new Request.Builder()
-                .url(BASE_URL + "get_ticker")
-                .post(RequestBody.create(body.toString(), JSON))
-                .build();
-
-        client.newCall(request).enqueue(new Callback() {
-            @Override
-            public void onFailure(@NonNull Call call, @NonNull IOException e) {
-                postError(callback, "اتصال به Derive.xyz برقرار نشد: " + e.getMessage());
+        post(BASE_URL + "get_ticker", body, new Callback() {
+            @Override public void onFailure(@NonNull Call call, @NonNull IOException e) {
+                post(() -> callback.onError("اتصال برقرار نشد: " + e.getMessage()));
             }
-
-            @Override
-            public void onResponse(@NonNull Call call, @NonNull Response response) {
+            @Override public void onResponse(@NonNull Call call, @NonNull Response response) {
                 try {
-                    if (!response.isSuccessful() || response.body() == null) {
-                        postError(callback, "پاسخ نامعتبر از سرور (کد " + response.code() + ")");
-                        return;
-                    }
-
-                    String raw = response.body().string();
-                    JSONObject json = new JSONObject(raw);
-
-                    if (json.has("error")) {
-                        postError(callback, "خطای API: " + json.getJSONObject("error").optString("message", "نامشخص"));
-                        return;
-                    }
-
-                    JSONObject result = json.getJSONObject("result");
-                    double value = result.getDouble(fieldName);
-
-                    postSuccess(callback, value);
-
-                } catch (JSONException | IOException e) {
-                    postError(callback, "خطا در پردازش پاسخ سرور: " + e.getMessage());
+                    JSONObject result = readResult(response);
+                    double price = result.getDouble("index_price");
+                    post(() -> callback.onSuccess(price));
+                } catch (Exception e) {
+                    post(() -> callback.onError(e.getMessage()));
                 } finally {
                     response.close();
                 }
@@ -112,71 +80,56 @@ public class DeriveApiClient {
         });
     }
 
+    // ---------- زنجیره آپشن ----------
+
     /**
-     * لیست قراردادهای آپشن فعال (غیرمنقضی) یک ارز را می‌گیرد.
-     * currency مثلاً "ETH"، optionType یکی از "call" یا "put".
+     * همه قراردادهای آپشن فعال یک ارز را می‌گیرد و به OptionContract تبدیل می‌کند.
+     * فیلدها طبق ساختار واقعی: option_details.{expiry, strike, option_type}
      */
-    public static void fetchOptionInstruments(String currency, String optionType, InstrumentsCallback callback) {
+    public static void fetchOptionChain(String currency, ChainCallback callback) {
         JSONObject body = new JSONObject();
         try {
             body.put("currency", currency.toUpperCase());
             body.put("expired", false);
             body.put("instrument_type", "option");
         } catch (JSONException e) {
-            postInstrumentsError(callback, "خطا در ساخت درخواست");
+            post(() -> callback.onError("خطا در ساخت درخواست"));
             return;
         }
 
-        Request request = new Request.Builder()
-                .url(BASE_URL + "get_instruments")
-                .post(RequestBody.create(body.toString(), JSON))
-                .build();
-
-        client.newCall(request).enqueue(new Callback() {
-            @Override
-            public void onFailure(@NonNull Call call, @NonNull IOException e) {
-                postInstrumentsError(callback, "اتصال به Derive.xyz برقرار نشد: " + e.getMessage());
+        post(BASE_URL + "get_instruments", body, new Callback() {
+            @Override public void onFailure(@NonNull Call call, @NonNull IOException e) {
+                post(() -> callback.onError("اتصال برقرار نشد: " + e.getMessage()));
             }
-
-            @Override
-            public void onResponse(@NonNull Call call, @NonNull Response response) {
+            @Override public void onResponse(@NonNull Call call, @NonNull Response response) {
                 try {
-                    if (!response.isSuccessful() || response.body() == null) {
-                        postInstrumentsError(callback, "پاسخ نامعتبر از سرور (کد " + response.code() + ")");
-                        return;
-                    }
-
-                    String raw = response.body().string();
-                    JSONObject json = new JSONObject(raw);
-
-                    if (json.has("error")) {
-                        postInstrumentsError(callback, "خطای API: " + json.getJSONObject("error").optString("message", "نامشخص"));
-                        return;
-                    }
-
-                    JSONArray array = extractInstrumentsArray(json);
-                    List<DeriveInstrument> instruments = new ArrayList<>();
+                    JSONArray array = readResultArray(response);
+                    List<OptionContract> list = new ArrayList<>();
 
                     for (int i = 0; i < array.length(); i++) {
                         JSONObject item = array.getJSONObject(i);
-                        String type = item.optString("option_type", "");
 
-                        if (optionType != null && !type.toLowerCase().startsWith(optionType.substring(0, 1).toLowerCase())) {
-                            continue;
-                        }
+                        if (!item.optBoolean("is_active", true)) continue;
 
-                        instruments.add(new DeriveInstrument(
-                                item.optString("instrument_name", ""),
-                                item.optDouble("strike", 0),
-                                item.optLong("expiration_timestamp", 0),
-                                type
-                        ));
+                        JSONObject details = item.optJSONObject("option_details");
+                        if (details == null) continue;
+
+                        String name = item.optString("instrument_name", "");
+                        // strike به‌صورت رشته می‌آید
+                        double strike = parseNum(details.opt("strike"));
+                        // expiry بر حسب ثانیه است
+                        long expiry = (long) parseNum(details.opt("expiry"));
+                        String type = details.optString("option_type", "");
+
+                        if (name.isEmpty() || strike <= 0 || expiry <= 0) continue;
+
+                        boolean isCall = type.equalsIgnoreCase("C") || type.toLowerCase().startsWith("c");
+                        list.add(new OptionContract(name, strike, expiry, isCall));
                     }
 
-                    postInstrumentsSuccess(callback, instruments);
-
-                } catch (JSONException | IOException e) {
-                    postInstrumentsError(callback, "خطا در پردازش پاسخ سرور: " + e.getMessage());
+                    post(() -> callback.onSuccess(list));
+                } catch (Exception e) {
+                    post(() -> callback.onError("خطا در پردازش: " + e.getMessage()));
                 } finally {
                     response.close();
                 }
@@ -185,129 +138,139 @@ public class DeriveApiClient {
     }
 
     /**
-     * پاسخ get_instruments ممکن است آرایه مستقیم زیر "result" باشد یا داخل یک
-     * کلید تودرتو مثل "instruments" — هر دو حالت را پوشش می‌دهیم.
+     * برای هر قرارداد، تیکر را می‌گیرد و گریک‌ها/قیمت را داخل همان شیء پر می‌کند.
+     * وقتی همه تمام شدند onComplete صدا زده می‌شود.
+     * نمونه JSON خام اولین پاسخ برای دیباگ برگردانده می‌شود.
      */
-    private static JSONArray extractInstrumentsArray(JSONObject json) throws JSONException {
-        Object result = json.get("result");
-        if (result instanceof JSONArray) {
-            return (JSONArray) result;
-        }
-        JSONObject resultObj = json.getJSONObject("result");
-        if (resultObj.has("instruments")) {
-            return resultObj.getJSONArray("instruments");
-        }
-        // آخرین تلاش: اولین کلید آرایه‌ای داخل result را برگردان
-        java.util.Iterator<String> keys = resultObj.keys();
-        while (keys.hasNext()) {
-            String key = keys.next();
-            if (resultObj.get(key) instanceof JSONArray) {
-                return resultObj.getJSONArray(key);
-            }
-        }
-        throw new JSONException("آرایه instruments در پاسخ پیدا نشد");
-    }
-
-    public interface RawListCallback {
-        void onSuccess(String rawFirstItem, int totalCount);
-        void onError(String message);
-    }
-
-    /**
-     * برای شناخت دقیق ساختار پاسخ get_instruments، این متد فقط تعداد کل آپشن‌های
-     * فعال یک دارایی و متن خام اولین آیتم را برمی‌گرداند (بدون parse دقیق فیلدها).
-     * پس از بررسی خروجی واقعی، در جلسه بعد منطق کامل انتخاب strike پیاده می‌شود.
-     */
-    public static void fetchOptionInstrumentsRaw(String currency, RawListCallback callback) {
-        JSONObject body = new JSONObject();
-        try {
-            body.put("currency", currency.toUpperCase());
-            body.put("expired", false);
-            body.put("instrument_type", "option");
-        } catch (JSONException e) {
-            postRawError(callback, "خطا در ساخت درخواست");
+    public static void fetchGreeksFor(List<OptionContract> contracts, GreeksCallback callback) {
+        if (contracts.isEmpty()) {
+            post(() -> callback.onComplete("(هیچ قراردادی نبود)"));
             return;
         }
 
-        Request request = new Request.Builder()
-                .url(BASE_URL + "get_instruments")
-                .post(RequestBody.create(body.toString(), JSON))
-                .build();
+        AtomicInteger remaining = new AtomicInteger(contracts.size());
+        StringBuilder sample = new StringBuilder();
 
-        client.newCall(request).enqueue(new Callback() {
-            @Override
-            public void onFailure(@NonNull Call call, @NonNull IOException e) {
-                postRawError(callback, "اتصال برقرار نشد: " + e.getMessage());
+        for (OptionContract contract : contracts) {
+            JSONObject body = new JSONObject();
+            try {
+                body.put("instrument_name", contract.instrumentName);
+            } catch (JSONException ignored) {
+                if (remaining.decrementAndGet() == 0) post(() -> callback.onComplete(sample.toString()));
+                continue;
             }
 
-            @Override
-            public void onResponse(@NonNull Call call, @NonNull Response response) {
-                try {
-                    if (!response.isSuccessful() || response.body() == null) {
-                        postRawError(callback, "پاسخ نامعتبر (کد " + response.code() + ")");
-                        return;
-                    }
+            post(BASE_URL + "get_ticker", body, new Callback() {
+                @Override public void onFailure(@NonNull Call call, @NonNull IOException e) {
+                    if (remaining.decrementAndGet() == 0) post(() -> callback.onComplete(sample.toString()));
+                }
 
-                    String raw = response.body().string();
-                    JSONObject json = new JSONObject(raw);
+                @Override public void onResponse(@NonNull Call call, @NonNull Response response) {
+                    try {
+                        JSONObject result = readResult(response);
 
-                    if (json.has("error")) {
-                        postRawError(callback, "خطای API: " + json.getJSONObject("error").optString("message", "نامشخص"));
-                        return;
-                    }
+                        synchronized (sample) {
+                            if (sample.length() == 0) {
+                                sample.append(result.toString(2));
+                            }
+                        }
 
-                    // نتیجه ممکن است آرایه مستقیم باشد یا داخل یک کلید دیگر
-                    JSONArray instruments;
-                    Object result = json.get("result");
-                    if (result instanceof JSONArray) {
-                        instruments = (JSONArray) result;
-                    } else {
-                        JSONObject resultObj = (JSONObject) result;
-                        instruments = resultObj.optJSONArray("instruments");
-                        if (instruments == null) {
-                            postRawSuccess(callback, resultObj.toString(2), -1);
-                            return;
+                        contract.markPrice = pick(result, "mark_price", "best_bid_price", "index_price");
+
+                        // گریک‌ها ممکن است در سطح بالا یا داخل option_pricing باشند
+                        JSONObject g = result.optJSONObject("option_pricing");
+                        if (g == null) g = result.optJSONObject("greeks");
+                        JSONObject src = (g != null) ? g : result;
+
+                        contract.delta = pick(src, "delta");
+                        contract.gamma = pick(src, "gamma");
+                        contract.vega  = pick(src, "vega");
+                        contract.theta = pick(src, "theta");
+                        contract.iv    = pick(src, "iv", "mark_iv", "implied_volatility");
+
+                        if (Double.isNaN(contract.markPrice) && g != null) {
+                            contract.markPrice = pick(g, "mark_price");
+                        }
+
+                    } catch (Exception ignored) {
+                        // این قرارداد نادیده گرفته می‌شود
+                    } finally {
+                        response.close();
+                        if (remaining.decrementAndGet() == 0) {
+                            post(() -> callback.onComplete(sample.toString()));
                         }
                     }
-
-                    if (instruments.length() == 0) {
-                        postRawSuccess(callback, "(هیچ آپشنی برنگشت)", 0);
-                        return;
-                    }
-
-                    String firstItem = instruments.getJSONObject(0).toString(2);
-                    postRawSuccess(callback, firstItem, instruments.length());
-
-                } catch (JSONException | IOException e) {
-                    postRawError(callback, "خطا در پردازش پاسخ: " + e.getMessage());
-                } finally {
-                    response.close();
                 }
+            });
+        }
+    }
+
+    // ---------- کمکی ----------
+
+    private static void post(String url, JSONObject body, Callback cb) {
+        Request request = new Request.Builder()
+                .url(url)
+                .post(RequestBody.create(body.toString(), JSON))
+                .build();
+        client.newCall(request).enqueue(cb);
+    }
+
+    private static void post(Runnable r) {
+        mainHandler.post(r);
+    }
+
+    private static JSONObject readResult(Response response) throws IOException, JSONException {
+        if (!response.isSuccessful() || response.body() == null) {
+            throw new IOException("پاسخ نامعتبر (کد " + response.code() + ")");
+        }
+        JSONObject json = new JSONObject(response.body().string());
+        if (json.has("error")) {
+            throw new IOException("خطای API: " + json.getJSONObject("error").optString("message", "نامشخص"));
+        }
+        return json.getJSONObject("result");
+    }
+
+    private static JSONArray readResultArray(Response response) throws IOException, JSONException {
+        if (!response.isSuccessful() || response.body() == null) {
+            throw new IOException("پاسخ نامعتبر (کد " + response.code() + ")");
+        }
+        JSONObject json = new JSONObject(response.body().string());
+        if (json.has("error")) {
+            throw new IOException("خطای API: " + json.getJSONObject("error").optString("message", "نامشخص"));
+        }
+        Object result = json.get("result");
+        if (result instanceof JSONArray) return (JSONArray) result;
+
+        JSONObject obj = (JSONObject) result;
+        if (obj.has("instruments")) return obj.getJSONArray("instruments");
+        java.util.Iterator<String> keys = obj.keys();
+        while (keys.hasNext()) {
+            Object v = obj.get(keys.next());
+            if (v instanceof JSONArray) return (JSONArray) v;
+        }
+        throw new JSONException("آرایه‌ای در پاسخ پیدا نشد");
+    }
+
+    /** عدد را چه رشته باشد چه عدد، می‌خواند. */
+    private static double parseNum(Object o) {
+        if (o == null) return 0;
+        if (o instanceof Number) return ((Number) o).doubleValue();
+        try {
+            return Double.parseDouble(o.toString());
+        } catch (NumberFormatException e) {
+            return 0;
+        }
+    }
+
+    /** اولین کلید موجود از میان چند نام محتمل را برمی‌گرداند؛ در غیر این صورت NaN. */
+    private static double pick(JSONObject obj, String... keys) {
+        for (String key : keys) {
+            if (obj.has(key) && !obj.isNull(key)) {
+                double v = parseNum(obj.opt(key));
+                if (v != 0 || obj.opt(key).toString().startsWith("0")) return v;
+                return v;
             }
-        });
-    }
-
-    private static void postRawSuccess(RawListCallback callback, String firstItem, int count) {
-        mainHandler.post(() -> callback.onSuccess(firstItem, count));
-    }
-
-    private static void postRawError(RawListCallback callback, String message) {
-        mainHandler.post(() -> callback.onError(message));
-    }
-
-    private static void postSuccess(PriceCallback callback, double price) {
-        mainHandler.post(() -> callback.onSuccess(price));
-    }
-
-    private static void postError(PriceCallback callback, String message) {
-        mainHandler.post(() -> callback.onError(message));
-    }
-
-    private static void postInstrumentsSuccess(InstrumentsCallback callback, List<DeriveInstrument> instruments) {
-        mainHandler.post(() -> callback.onSuccess(instruments));
-    }
-
-    private static void postInstrumentsError(InstrumentsCallback callback, String message) {
-        mainHandler.post(() -> callback.onError(message));
+        }
+        return Double.NaN;
     }
 }

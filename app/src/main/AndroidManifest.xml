@@ -11,9 +11,8 @@
         android:theme="@style/Theme.Portfolio360">
 
         <activity
-            android:name=".SplashActivity"
-            android:exported="true"
-            android:theme="@style/SplashTheme">
+            android:name=".MainActivity"
+            android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
@@ -21,8 +20,9 @@
         </activity>
 
         <activity
-            android:name=".MainActivity"
-            android:exported="false"/>
+            android:name=".SplashActivity"
+            android:exported="false"
+            android:theme="@style/SplashTheme"/>
 
     </application>
 

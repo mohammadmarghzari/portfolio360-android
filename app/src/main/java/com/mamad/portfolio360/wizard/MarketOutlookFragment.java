@@ -17,14 +17,12 @@ import com.mamad.portfolio360.network.DeriveApiClient;
 import java.util.Locale;
 
 /**
- * صفحه اول ویزارد: انتخاب دارایی (فعلاً ثابت روی ETH) و دیدگاه بازار کاربر
- * (صعودی/نزولی/پرنوسان/خنثی/کسب درآمد) — مشابه گام اول Strategy Builder در Derive.xyz.
- * قیمت لحظه‌ای ETH به‌صورت زنده از API عمومی Derive.xyz دریافت می‌شود.
+ * صفحه اول ویزارد: قیمت زنده ETH، دکمه ورود به زنجیره آپشن،
+ * و انتخاب دیدگاه بازار (صعودی/نزولی/پرنوسان/خنثی/کسب درآمد).
  */
 public class MarketOutlookFragment extends Fragment {
 
     private TextView textAsset;
-    private TextView textDebugResult;
 
     @Nullable
     @Override
@@ -33,7 +31,6 @@ public class MarketOutlookFragment extends Fragment {
         View view = inflater.inflate(R.layout.fragment_market_outlook, container, false);
 
         textAsset = view.findViewById(R.id.text_asset);
-        textDebugResult = view.findViewById(R.id.text_debug_result);
         loadSpotPrice();
 
         bindOutlookCard(view, R.id.card_bullish, StrategyMapping.OUTLOOK_BULLISH);
@@ -42,28 +39,18 @@ public class MarketOutlookFragment extends Fragment {
         bindOutlookCard(view, R.id.card_neutral, StrategyMapping.OUTLOOK_NEUTRAL);
         bindOutlookCard(view, R.id.card_yield, StrategyMapping.OUTLOOK_YIELD);
 
-        View debugButton = view.findViewById(R.id.btn_debug_options);
-        debugButton.setOnClickListener(v -> fetchDebugOptions());
+        View chainButton = view.findViewById(R.id.btn_debug_options);
+        chainButton.setOnClickListener(v -> openOptionChain());
 
         return view;
     }
 
-    private void fetchDebugOptions() {
-        textDebugResult.setText(R.string.debug_fetching);
-
-        DeriveApiClient.fetchOptionInstrumentsRaw("ETH", new DeriveApiClient.RawListCallback() {
-            @Override
-            public void onSuccess(String rawFirstItem, int totalCount) {
-                if (!isAdded()) return;
-                textDebugResult.setText("تعداد کل: " + totalCount + "\n\nاولین آیتم:\n" + rawFirstItem);
-            }
-
-            @Override
-            public void onError(String message) {
-                if (!isAdded()) return;
-                textDebugResult.setText("خطا: " + message);
-            }
-        });
+    private void openOptionChain() {
+        requireActivity().getSupportFragmentManager()
+                .beginTransaction()
+                .replace(R.id.fragment_container, new OptionChainFragment())
+                .addToBackStack(null)
+                .commit();
     }
 
     private void loadSpotPrice() {

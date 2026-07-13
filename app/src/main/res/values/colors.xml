@@ -6,4 +6,12 @@
     <color name="blueprint_accent">#3E7CB1</color>
     <color name="blueprint_text">#152238</color>
     <color name="blueprint_grid_line">#D6DEEA</color>
+    <color name="chain_call">#1B7F4C</color>
+    <color name="chain_put">#B03A3A</color>
+    <color name="chart_surface">#0F172A</color>
+    <color name="chart_text">#E2E8F0</color>
+    <color name="chart_strategy">#38BDF8</color>
+    <color name="chart_baseline">#64748B</color>
+    <color name="home_card_options">#1B3A6B</color>
+    <color name="home_card_portfolio">#5B3E9E</color>
 </resources>

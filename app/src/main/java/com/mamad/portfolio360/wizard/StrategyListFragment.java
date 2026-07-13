@@ -13,14 +13,12 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
 import com.mamad.portfolio360.R;
-import com.mamad.portfolio360.fragments.CoveredCallFragment;
-import com.mamad.portfolio360.fragments.ProtectivePutFragment;
 
 import java.util.List;
 
 /**
- * صفحه دوم ویزارد: نمایش لیست استراتژی‌های پیشنهادی بر اساس دیدگاه بازار انتخابی
- * — مشابه بخش "Select a strategy" در Derive.xyz.
+ * گام دوم ویزارد: انتخاب استراتژی بر اساس دیدگاه بازار.
+ * پس از انتخاب، کاربر به زنجیره آپشن می‌رود تا یک قرارداد واقعی انتخاب کند.
  */
 public class StrategyListFragment extends Fragment {
 
@@ -56,7 +54,7 @@ public class StrategyListFragment extends Fragment {
             description.setText(option.description);
             badge.setVisibility(option.implemented ? View.GONE : View.VISIBLE);
 
-            card.setOnClickListener(v -> openStrategyDetail(option));
+            card.setOnClickListener(v -> openContractPicker(option));
 
             listContainer.addView(card);
         }
@@ -64,25 +62,19 @@ public class StrategyListFragment extends Fragment {
         return view;
     }
 
-    private void openStrategyDetail(StrategyOption option) {
-        Fragment detailFragment = null;
-
-        switch (option.key) {
-            case "covered_call":
-                detailFragment = new CoveredCallFragment();
-                break;
-            case "protective_put":
-                detailFragment = new ProtectivePutFragment();
-                break;
-            default:
-                // استراتژی‌های دیگر هنوز پیاده‌سازی نشده‌اند
-                Toast.makeText(getContext(), R.string.strategy_coming_soon_message, Toast.LENGTH_SHORT).show();
-                return;
+    /** کاربر را به زنجیره آپشن می‌برد تا قرارداد واقعی را انتخاب کند. */
+    private void openContractPicker(StrategyOption option) {
+        if (!option.implemented) {
+            Toast.makeText(getContext(), R.string.strategy_coming_soon_message,
+                    Toast.LENGTH_SHORT).show();
+            return;
         }
+
+        OptionChainFragment fragment = OptionChainFragment.newInstanceForStrategy(option.key);
 
         requireActivity().getSupportFragmentManager()
                 .beginTransaction()
-                .replace(R.id.fragment_container, detailFragment)
+                .replace(R.id.fragment_container, fragment)
                 .addToBackStack(null)
                 .commit();
     }
