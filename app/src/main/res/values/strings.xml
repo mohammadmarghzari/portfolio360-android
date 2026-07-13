@@ -170,6 +170,7 @@
     <string name="sub_subtitle">با تهیه اشتراک، به کاوردکال، پروتکتیو پوت، لانگ استرنگل و ابزارهای حرفه‌ای پرتفوی دسترسی کامل داری.</string>
     <string name="sub_status_active">اشتراک شما فعال است، تا تاریخ %1$s.</string>
     <string name="sub_status_inactive">در حال حاضر اشتراک فعالی نداری.</string>
+    <string name="sub_status_trial">🎁 دوره آزمایشی رایگان فعاله! تا تاریخ %1$s به همه‌چیز دسترسی کامل داری.</string>
     <string name="sub_plan_1m">۱ ماهه</string>
     <string name="sub_plan_3m">۳ ماهه</string>
     <string name="sub_plan_6m">۶ ماهه</string>

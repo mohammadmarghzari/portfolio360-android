@@ -3,6 +3,7 @@ package com.mamad.portfolio360.premium;
 import android.content.Context;
 
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.FirebaseFirestore;
 
 /**
@@ -10,15 +11,40 @@ import com.google.firebase.firestore.FirebaseFirestore;
  * subscriptions/{uid} در Firestore است که فقط تابع سرور (پس از تأیید رسید در
  * تلگرام) آن را می‌نویسد؛ این کلاس فقط می‌خواند و در حافظه کش می‌کند تا
  * بررسی وضعیت (isActive) در همه‌جای اپ همگام و سریع باشد.
+ *
+ * علاوه بر اشتراک پولی، ۱۰ روز اول بعد از ساخت حساب (بر مبنای تاریخ ساخت
+ * حساب در فایربیس — نه چیزی که کلاینت بنویسد) کل اپ رایگان است.
  */
 public class SubscriptionManager {
+
+    private static final long TRIAL_DURATION_MS = 10L * 24 * 60 * 60 * 1000;
 
     private static volatile boolean cachedActive = false;
     private static volatile long cachedExpiresAt = 0L;
     private static volatile String lastError = null;
 
+    /** true اگر اشتراک پولی فعال باشد یا هنوز داخل ۱۰ روز آزمایشی رایگان باشیم. */
     public static boolean isActive(Context context) {
+        return isPaidActive() || isInTrial();
+    }
+
+    /** true فقط وقتی اشتراک پولی واقعی (نه دوره آزمایشی) فعال باشد. */
+    public static boolean isPaidActive() {
         return cachedActive && cachedExpiresAt > System.currentTimeMillis();
+    }
+
+    /** true اگر هنوز داخل ۱۰ روز اول بعد از ساخت حساب باشیم. */
+    public static boolean isInTrial() {
+        long endsAt = trialEndsAtMillis();
+        return endsAt > 0 && System.currentTimeMillis() < endsAt;
+    }
+
+    /** لحظه‌ی پایان دوره آزمایشی (میلی‌ثانیه)، یا ۰ اگر کاربر واردنشده باشد. */
+    public static long trialEndsAtMillis() {
+        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+        if (user == null || user.getMetadata() == null) return 0L;
+        long createdAt = user.getMetadata().getCreationTimestamp();
+        return createdAt > 0 ? createdAt + TRIAL_DURATION_MS : 0L;
     }
 
     public static long expiresAtMillis(Context context) {

@@ -72,10 +72,14 @@ public class PremiumHubFragment extends Fragment {
 
     private void bindStatusBanner(View view) {
         TextView banner = view.findViewById(R.id.premium_status_banner);
-        if (SubscriptionManager.isActive(requireContext())) {
+        if (SubscriptionManager.isPaidActive()) {
             String until = new SimpleDateFormat("yyyy/MM/dd", Locale.US)
                     .format(new Date(SubscriptionManager.expiresAtMillis(requireContext())));
             banner.setText(getString(R.string.sub_status_active, until));
+        } else if (SubscriptionManager.isInTrial()) {
+            String until = new SimpleDateFormat("yyyy/MM/dd", Locale.US)
+                    .format(new Date(SubscriptionManager.trialEndsAtMillis()));
+            banner.setText(getString(R.string.sub_status_trial, until));
         } else {
             banner.setText(getString(R.string.sub_status_inactive));
         }

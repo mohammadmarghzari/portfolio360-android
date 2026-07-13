@@ -62,10 +62,14 @@ public class ProfileFragment extends Fragment {
 
         SubscriptionManager.refresh(() -> {
             if (!isAdded()) return;
-            if (SubscriptionManager.isActive(requireContext())) {
+            if (SubscriptionManager.isPaidActive()) {
                 String until = new SimpleDateFormat("yyyy/MM/dd", Locale.US)
                         .format(new Date(SubscriptionManager.expiresAtMillis(requireContext())));
                 statusView.setText(getString(R.string.sub_status_active, until));
+            } else if (SubscriptionManager.isInTrial()) {
+                String until = new SimpleDateFormat("yyyy/MM/dd", Locale.US)
+                        .format(new Date(SubscriptionManager.trialEndsAtMillis()));
+                statusView.setText(getString(R.string.sub_status_trial, until));
             } else {
                 statusView.setText(getString(R.string.sub_status_inactive));
             }
