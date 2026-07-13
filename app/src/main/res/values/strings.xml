@@ -161,6 +161,8 @@
     <string name="premium_item_long_strangle_desc">سود از نوسان شدید قیمت در هر جهت (زنجیره زنده آپشن)</string>
     <string name="premium_item_portfolio_title">ابزارهای حرفه‌ای پرتفوی</string>
     <string name="premium_item_portfolio_desc">پیشنهاد وزن پرتفوی با CVaR، مونت‌کارلو، آزمون استرس و بارِبل طالب</string>
+    <string name="premium_item_guide_title">راهنمای خرید دارایی‌ها</string>
+    <string name="premium_item_guide_desc">سهام آمریکایی، آپشن و کالاها رو از کجا و با چه ابزاری بخری (نیاز به VPN)</string>
     <string name="premium_locked_toast">این بخش ویژه اعضای اشتراکی است.</string>
     <string name="premium_locked_badge">🔒 اشتراکی</string>
 
@@ -239,6 +241,22 @@
     <string name="profile_photo_saved">عکس پروفایل ذخیره شد</string>
     <string name="profile_save_failed">ذخیره ناموفق بود — اتصال اینترنتت رو چک کن</string>
     <string name="profile_sign_out_button">خروج از حساب</string>
+
+    <string name="guide_title">راهنمای خرید دارایی‌ها</string>
+    <string name="guide_subtitle">برای اجرای واقعی استراتژی‌هایی که توی اپ تحلیل می‌کنی، اینجا می‌بینی هر نوع دارایی رو از کجا و چطور می‌تونی معامله کنی.</string>
+    <string name="guide_vpn_title">⚠️ نکته مهم: VPN</string>
+    <string name="guide_vpn_body">همه‌ی پلتفرم‌های زیر بین‌المللی‌اند و معمولاً برای IPهای ایران در دسترس نیستند؛ برای باز کردن هرکدام از لینک‌های زیر حتماً باید یک VPN فعال روی گوشی یا مرورگرت داشته باشی. همچنین برای استفاده‌ی روان از خودِ اپ Portfolio360 (دریافت قیمت لحظه‌ای، زنجیره آپشن و داده‌های بازار) هم توصیه می‌شود همیشه VPN را روشن نگه داری.</string>
+    <string name="guide_stocks_title">سهام آمریکایی (AAPL، MSFT، TSLA و…)</string>
+    <string name="guide_stocks_body">چون باز کردن حساب کارگزاری آمریکایی از ایران معمولاً ممکن نیست، ساده‌ترین راه، خرید نسخه‌ی توکنایزشده (synthetic) این سهم‌ها روی بلاک‌چین است — با یک کیف‌پول (مثل MetaMask) و کمی USDT/ETH، مستقیم از داخل مرورگر می‌توانی سهم موردنظرت را بخری. توجه کن این یک دارایی synthetic/on-chain است، نه مالکیت واقعی سهم.</string>
+    <string name="guide_open_platform">باز کردن پلتفرم</string>
+    <string name="guide_options_title">آپشن (کاوردکال، پروتکتیو پوت، لانگ استرنگل)</string>
+    <string name="guide_options_body">برای اجرای واقعی استراتژی‌های آپشنی که در این اپ محاسبه می‌کنی (روی دارایی‌های کریپتویی مثل ETH/BTC)، از پلتفرم Derive.xyz استفاده کن — همان منبع داده‌ی زنده‌ای که زنجیره آپشن اپ از آن می‌خواند. نیاز به کیف‌پول Web3 و واریز کریپتو دارد.</string>
+    <string name="guide_commodities_title">کالاها (طلا، نفت، فارکس و شاخص‌ها)</string>
+    <string name="guide_commodities_body">برای معامله‌ی فیوچرز/CFD روی طلا، نفت، جفت‌ارزها و شاخص‌های سهام به‌صورت آنلاین و بدون نیاز به کارگزاری سنتی، از پلتفرم Ostium استفاده کن — یک صرافی غیرمتمرکز مخصوص کالاها و فارکس. این‌جا هم نیاز به کیف‌پول Web3 و واریز کریپتو دارد.</string>
+    <string name="guide_crypto_title">ارز دیجیتال</string>
+    <string name="guide_crypto_body">برای خرید مستقیم ارزهای دیجیتال، از یک صرافی معتبر بین‌المللی (مثل Binance یا KuCoin) یا مستقیم از کیف‌پول شخصی از طریق یک صرافی غیرمتمرکز (DEX) استفاده کن. اینجا هم دسترسی معمولاً نیاز به VPN دارد.</string>
+    <string name="guide_etf_title">صندوق‌های قابل‌معامله (ETF مثل SPY، QQQ)</string>
+    <string name="guide_etf_body">بیشتر ETFها هم مثل سهام آمریکایی از طریق همان پلتفرم‌های توکنایزشده (بخش سهام بالا) قابل معامله‌اند؛ قبل از خرید، لیست نمادهای موجود در پلتفرم را چک کن چون ممکن است همه‌ی ETFها پشتیبانی نشوند.</string>
 
     <string name="login_subtitle">برای استفاده از اپ، وارد حساب خودت شو</string>
     <string name="login_title_signup">ساخت حساب کاربری</string>

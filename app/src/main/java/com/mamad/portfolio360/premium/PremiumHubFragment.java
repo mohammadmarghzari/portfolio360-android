@@ -37,11 +37,17 @@ public class PremiumHubFragment extends Fragment {
         final String titleRes;
         final String descRes;
         final java.util.function.Supplier<Fragment> destination;
+        final boolean requiresSubscription;
 
         Item(String titleRes, String descRes, java.util.function.Supplier<Fragment> destination) {
+            this(titleRes, descRes, destination, true);
+        }
+
+        Item(String titleRes, String descRes, java.util.function.Supplier<Fragment> destination, boolean requiresSubscription) {
             this.titleRes = titleRes;
             this.descRes = descRes;
             this.destination = destination;
+            this.requiresSubscription = requiresSubscription;
         }
     }
 
@@ -96,6 +102,10 @@ public class PremiumHubFragment extends Fragment {
                 getString(R.string.premium_item_portfolio_title),
                 getString(R.string.premium_item_portfolio_desc),
                 PortfolioSetupFragment::new));
+        items.add(new Item(
+                getString(R.string.premium_item_guide_title),
+                getString(R.string.premium_item_guide_desc),
+                AssetGuideFragment::new, false));
 
         for (Item item : items) {
             View cardView = inflater.inflate(R.layout.item_strategy_card, container, false);
@@ -106,7 +116,7 @@ public class PremiumHubFragment extends Fragment {
             card.findViewById(R.id.text_badge).setVisibility(View.GONE);
 
             card.setOnClickListener(v -> {
-                if (SubscriptionManager.isActive(requireContext())) {
+                if (!item.requiresSubscription || SubscriptionManager.isActive(requireContext())) {
                     navigateTo(item.destination.get());
                 } else {
                     Toast.makeText(getContext(), R.string.premium_locked_toast, Toast.LENGTH_SHORT).show();
