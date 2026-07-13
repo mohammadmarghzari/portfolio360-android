@@ -1,9 +1,5 @@
 package com.mamad.portfolio360.wizard;
 
-import android.graphics.Color;
-import android.graphics.LinearGradient;
-import android.graphics.Paint;
-import android.graphics.Shader;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -16,21 +12,19 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
 import com.github.mikephil.charting.charts.LineChart;
-import com.github.mikephil.charting.components.LimitLine;
-import com.github.mikephil.charting.components.XAxis;
-import com.github.mikephil.charting.components.YAxis;
-import com.github.mikephil.charting.data.Entry;
-import com.github.mikephil.charting.data.LineData;
-import com.github.mikephil.charting.data.LineDataSet;
-import com.github.mikephil.charting.formatter.ValueFormatter;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.textfield.TextInputEditText;
 import com.mamad.portfolio360.R;
+import com.mamad.portfolio360.calc.CoveredCall;
+import com.mamad.portfolio360.calc.InvestmentVerdict;
 import com.mamad.portfolio360.calc.PayoffEngine;
+import com.mamad.portfolio360.calc.ProtectivePut;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Set;
 
 /**
  * صفحه نتیجه استراتژی: نمودار تعاملی سود/زیان در سررسید،
@@ -43,6 +37,7 @@ public class StrategyResultFragment extends Fragment {
     private static final String ARG_STRIKE = "strike";
     private static final String ARG_PREMIUM = "premium";
     private static final String ARG_SPOT = "spot";
+    private static final String ARG_DAYS = "days";
     private static final String ARG_INSTRUMENT2 = "instrument2";
     private static final String ARG_STRIKE2 = "strike2";
     private static final String ARG_PREMIUM2 = "premium2";
@@ -50,16 +45,16 @@ public class StrategyResultFragment extends Fragment {
     private static final String ARG_MULTI_STRIKES = "multi_strikes";
     private static final String ARG_MULTI_PREMIUMS = "multi_premiums";
 
-    private static final int COLOR_STRATEGY = Color.parseColor("#38BDF8");
-    private static final int COLOR_BASELINE = Color.parseColor("#64748B");
-    private static final int COLOR_GRID = Color.parseColor("#1E293B");
-    private static final int COLOR_AXIS_TEXT = Color.parseColor("#94A3B8");
+    /** استراتژی‌های اشتراکی که نظر/استدلال سرمایه‌گذاری برایشان نمایش داده می‌شود. */
+    private static final Set<String> VERDICT_STRATEGIES = new HashSet<>(
+            java.util.Arrays.asList("covered_call", "protective_put", "long_strangle"));
 
     private String strategyKey;
     private String instrumentName;
     private double strike;
     private double premium;
     private double spot;
+    private double daysToExpiry = 30;
 
     private boolean hasSecondLeg;
     private String instrumentName2;
@@ -73,9 +68,12 @@ public class StrategyResultFragment extends Fragment {
 
     private LineChart chart;
     private TextInputEditText inputCostBasis;
+    private TextInputEditText inputExpectedReturn;
+    private TextInputEditText inputRiskFreeRate;
 
     public static StrategyResultFragment newInstance(String strategyKey, String instrumentName,
-                                                      double strike, double premium, double spot) {
+                                                      double strike, double premium, double spot,
+                                                      double daysToExpiry) {
         StrategyResultFragment f = new StrategyResultFragment();
         Bundle b = new Bundle();
         b.putString(ARG_STRATEGY, strategyKey);
@@ -83,6 +81,7 @@ public class StrategyResultFragment extends Fragment {
         b.putDouble(ARG_STRIKE, strike);
         b.putDouble(ARG_PREMIUM, premium);
         b.putDouble(ARG_SPOT, spot);
+        b.putDouble(ARG_DAYS, daysToExpiry);
         f.setArguments(b);
         return f;
     }
@@ -91,7 +90,7 @@ public class StrategyResultFragment extends Fragment {
             String strategyKey,
             String instrument1, double strike1, double premium1,
             String instrument2, double strikeB, double premiumB,
-            double spot) {
+            double spot, double daysToExpiry) {
         StrategyResultFragment f = new StrategyResultFragment();
         Bundle b = new Bundle();
         b.putString(ARG_STRATEGY, strategyKey);
@@ -102,6 +101,7 @@ public class StrategyResultFragment extends Fragment {
         b.putDouble(ARG_STRIKE2, strikeB);
         b.putDouble(ARG_PREMIUM2, premiumB);
         b.putDouble(ARG_SPOT, spot);
+        b.putDouble(ARG_DAYS, daysToExpiry);
         f.setArguments(b);
         return f;
     }
@@ -129,6 +129,7 @@ public class StrategyResultFragment extends Fragment {
         Bundle args = requireArguments();
         strategyKey = args.getString(ARG_STRATEGY, "");
         spot = args.getDouble(ARG_SPOT);
+        if (args.containsKey(ARG_DAYS)) daysToExpiry = args.getDouble(ARG_DAYS);
 
         isMultiLeg = args.containsKey(ARG_MULTI_INSTRUMENTS);
 
@@ -157,6 +158,13 @@ public class StrategyResultFragment extends Fragment {
 
         chart = view.findViewById(R.id.payoff_chart);
         inputCostBasis = view.findViewById(R.id.input_cost_basis);
+        inputExpectedReturn = view.findViewById(R.id.input_expected_return);
+        inputRiskFreeRate = view.findViewById(R.id.input_risk_free_rate);
+
+        View verdictInputsCard = view.findViewById(R.id.verdict_inputs_card);
+        boolean showVerdict = VERDICT_STRATEGIES.contains(strategyKey);
+        verdictInputsCard.setVisibility(showVerdict ? View.VISIBLE : View.GONE);
+        view.findViewById(R.id.result_verdict).setVisibility(showVerdict ? View.VISIBLE : View.GONE);
 
         // پیش‌فرض قیمت خرید = قیمت لحظه‌ای فعلی؛ کاربر می‌تواند تغییر دهد
         inputCostBasis.setText(String.format(Locale.US, "%.2f", spot));
@@ -235,6 +243,44 @@ public class StrategyResultFragment extends Fragment {
         setupChart(result, baseline, costBasis);
         bindKpis(view, result, strategyKey);
         bindExplanation(view, result, strategyKey);
+        if (VERDICT_STRATEGIES.contains(strategyKey)) {
+            bindVerdict(view, result, costBasis);
+        }
+    }
+
+    private void bindVerdict(View view, PayoffEngine.Result r, double costBasis) {
+        double expectedReturn = parseOrDefault(inputExpectedReturn, 25);
+        double riskFreeRate = parseOrDefault(inputRiskFreeRate, 30);
+
+        InvestmentVerdict.Result verdict;
+        if ("covered_call".equals(strategyKey)) {
+            CoveredCall.Result cc = CoveredCall.compute(costBasis, spot, strike, premium, daysToExpiry);
+            verdict = InvestmentVerdict.forCoveredCall(cc.annualizedReturnPct, cc.ifCalledReturnPct, expectedReturn, riskFreeRate);
+        } else if ("protective_put".equals(strategyKey)) {
+            ProtectivePut.Result pp = ProtectivePut.compute(costBasis, strike, premium, daysToExpiry);
+            verdict = InvestmentVerdict.forProtectivePut(pp.annualizedInsuranceCostPct, pp.protectionLevelPct, expectedReturn, riskFreeRate);
+        } else { // long_strangle
+            double totalCost = Math.abs(netPremiumSigned());
+            double annualizedCostPct = (totalCost / spot) * 100.0 * (365.0 / Math.max(1, daysToExpiry));
+            double nearestBreakevenDistance = Double.POSITIVE_INFINITY;
+            for (Double be : r.breakevens) {
+                nearestBreakevenDistance = Math.min(nearestBreakevenDistance, Math.abs(be - spot));
+            }
+            double requiredMovePct = Double.isInfinite(nearestBreakevenDistance) ? 0 : (nearestBreakevenDistance / spot) * 100.0;
+            verdict = InvestmentVerdict.forNetDebitStrategy(annualizedCostPct, requiredMovePct, expectedReturn, riskFreeRate);
+        }
+
+        ((TextView) view.findViewById(R.id.result_verdict)).setText(verdict.reasoning);
+    }
+
+    private double parseOrDefault(TextInputEditText field, double fallback) {
+        String text = field.getText() != null ? field.getText().toString().trim() : "";
+        if (text.isEmpty()) return fallback;
+        try {
+            return Double.parseDouble(text);
+        } catch (NumberFormatException e) {
+            return fallback;
+        }
     }
 
     /** محاسبه و نمایش برای استراتژی‌های چندپایه عمومی (آیرون کاندور، پروانه‌ای). */
@@ -326,124 +372,8 @@ public class StrategyResultFragment extends Fragment {
     }
 
     private void setupChart(PayoffEngine.Result result, List<PayoffEngine.Leg> baselineLegs, double costBasis) {
-
-        List<Entry> strategyEntries = new ArrayList<>();
-        List<Entry> baselineEntries = new ArrayList<>();
-
-        for (int i = 0; i < result.prices.length; i++) {
-            float x = (float) result.prices[i];
-            strategyEntries.add(new Entry(x, (float) result.payoffs[i]));
-            baselineEntries.add(new Entry(x, (float) PayoffEngine.totalPayoff(baselineLegs, result.prices[i])));
-        }
-
-        LineDataSet strategySet = new LineDataSet(strategyEntries, "");
-        strategySet.setColor(COLOR_STRATEGY);
-        strategySet.setLineWidth(2.6f);
-        strategySet.setDrawCircles(false);
-        strategySet.setDrawValues(false);
-        strategySet.setMode(LineDataSet.Mode.LINEAR);
-        strategySet.setDrawFilled(true);
-        strategySet.setFillAlpha(70);
-        strategySet.setHighlightEnabled(true);          // فقط این خط قابل لمس/هایلایت است
-        strategySet.setDrawHorizontalHighlightIndicator(false);
-        strategySet.setHighlightLineWidth(1f);
-        strategySet.setHighLightColor(Color.parseColor("#64748B"));
-
-        strategySet.setFillDrawable(new android.graphics.drawable.Drawable() {
-            @Override public void draw(@NonNull android.graphics.Canvas canvas) {
-                Paint paint = new Paint();
-                android.graphics.Rect b = getBounds();
-                paint.setShader(new LinearGradient(0, b.top, 0, b.bottom,
-                        new int[]{
-                                Color.argb(120, 34, 197, 94),
-                                Color.argb(20, 34, 197, 94),
-                                Color.argb(20, 239, 68, 68),
-                                Color.argb(120, 239, 68, 68)},
-                        new float[]{0f, 0.48f, 0.52f, 1f},
-                        Shader.TileMode.CLAMP));
-                canvas.drawRect(b, paint);
-            }
-            @Override public void setAlpha(int alpha) {}
-            @Override public void setColorFilter(@Nullable android.graphics.ColorFilter cf) {}
-            @Override public int getOpacity() { return android.graphics.PixelFormat.TRANSLUCENT; }
-        });
-
-        LineDataSet baselineSet = new LineDataSet(baselineEntries, "");
-        baselineSet.setColor(COLOR_BASELINE);
-        baselineSet.setLineWidth(1.4f);
-        baselineSet.setDrawCircles(false);
-        baselineSet.setDrawValues(false);
-        baselineSet.enableDashedLine(12f, 8f, 0f);
-        baselineSet.setDrawFilled(false);
-        baselineSet.setHighlightEnabled(false);          // این خط قابل لمس نیست
-
-        chart.setData(new LineData(baselineSet, strategySet));
-
-        chart.getDescription().setEnabled(false);
-        chart.getLegend().setEnabled(false);
-        chart.setDrawGridBackground(false);
-        chart.setBackgroundColor(Color.TRANSPARENT);
-        chart.setExtraOffsets(4, 8, 4, 30);
-        chart.setTouchEnabled(true);
-        chart.setPinchZoom(true);
-        chart.setDoubleTapToZoomEnabled(false);
-        chart.setHighlightPerTapEnabled(true);
-        chart.setHighlightPerDragEnabled(true);          // کشیدن انگشت روی نمودار هم کار کند
-
-        chart.setMarker(new PayoffMarkerView(requireContext(), costBasis));
-
-        XAxis x = chart.getXAxis();
-        x.setPosition(XAxis.XAxisPosition.BOTTOM);
-        x.setTextColor(COLOR_AXIS_TEXT);
-        x.setGridColor(COLOR_GRID);
-        x.setAxisLineColor(COLOR_GRID);
-        x.setTextSize(9f);
-        x.setLabelCount(5, false);
-        x.removeAllLimitLines();
-        x.setValueFormatter(new ValueFormatter() {
-            @Override public String getFormattedValue(float value) {
-                return String.format(Locale.US, "%,.0f", value);
-            }
-        });
-
-        YAxis left = chart.getAxisLeft();
-        left.setTextColor(COLOR_AXIS_TEXT);
-        left.setGridColor(COLOR_GRID);
-        left.setAxisLineColor(COLOR_GRID);
-        left.setTextSize(9f);
-        left.setDrawZeroLine(true);
-        left.setZeroLineColor(Color.parseColor("#475569"));
-        left.setZeroLineWidth(1.2f);
-        left.setValueFormatter(new ValueFormatter() {
-            @Override public String getFormattedValue(float value) {
-                return String.format(Locale.US, "%,.0f", value);
-            }
-        });
-
-        chart.getAxisRight().setEnabled(false);
-
-        LimitLine spotLine = new LimitLine((float) spot, getString(R.string.chart_spot_label));
-        spotLine.setLineColor(Color.parseColor("#FBBF24"));
-        spotLine.setLineWidth(1.4f);
-        spotLine.enableDashedLine(8f, 6f, 0f);
-        spotLine.setTextColor(Color.parseColor("#FBBF24"));
-        spotLine.setTextSize(9f);
-        spotLine.setLabelPosition(LimitLine.LimitLabelPosition.RIGHT_TOP);
-        x.addLimitLine(spotLine);
-
-        for (Double be : result.breakevens) {
-            LimitLine beLine = new LimitLine(be.floatValue(), getString(R.string.chart_breakeven_label));
-            beLine.setLineColor(Color.parseColor("#A78BFA"));
-            beLine.setLineWidth(1.1f);
-            beLine.enableDashedLine(6f, 5f, 0f);
-            beLine.setTextColor(Color.parseColor("#A78BFA"));
-            beLine.setTextSize(9f);
-            beLine.setLabelPosition(LimitLine.LimitLabelPosition.LEFT_BOTTOM);
-            x.addLimitLine(beLine);
-        }
-
-        chart.animateX(500);
-        chart.invalidate();
+        PayoffChartRenderer.render(chart, requireContext(), result, baselineLegs, costBasis, spot,
+                getString(R.string.chart_spot_label), getString(R.string.chart_breakeven_label));
     }
 
     /** پرمیوم خالص استراتژی: مثبت یعنی دریافتی (اعتباری)، منفی یعنی پرداختی (بدهکاری). */

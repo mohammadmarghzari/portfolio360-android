@@ -11,11 +11,16 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
+import com.github.mikephil.charting.charts.LineChart;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.textfield.TextInputEditText;
 import com.mamad.portfolio360.R;
+import com.mamad.portfolio360.calc.InvestmentVerdict;
+import com.mamad.portfolio360.calc.PayoffEngine;
 import com.mamad.portfolio360.calc.ProtectivePut;
+import com.mamad.portfolio360.wizard.PayoffChartRenderer;
 
+import java.util.List;
 import java.util.Locale;
 
 /**
@@ -24,9 +29,11 @@ import java.util.Locale;
  */
 public class ProtectivePutFragment extends Fragment {
 
-    private TextInputEditText inputCostBasis, inputStrike, inputPremium, inputDays;
+    private TextInputEditText inputCostBasis, inputStrike, inputPremium, inputDays,
+            inputExpectedReturn, inputRiskFreeRate;
     private TextView resultBreakeven, resultMaxLoss, resultProtectionLevel,
-            resultInsuranceCost, resultAnnualizedCost;
+            resultInsuranceCost, resultAnnualizedCost, resultVerdict;
+    private LineChart chart;
 
     @Nullable
     @Override
@@ -38,12 +45,16 @@ public class ProtectivePutFragment extends Fragment {
         inputStrike = view.findViewById(R.id.input_strike);
         inputPremium = view.findViewById(R.id.input_premium);
         inputDays = view.findViewById(R.id.input_days);
+        inputExpectedReturn = view.findViewById(R.id.input_expected_return);
+        inputRiskFreeRate = view.findViewById(R.id.input_risk_free_rate);
 
         resultBreakeven = view.findViewById(R.id.result_breakeven);
         resultMaxLoss = view.findViewById(R.id.result_max_loss);
         resultProtectionLevel = view.findViewById(R.id.result_protection_level);
         resultInsuranceCost = view.findViewById(R.id.result_insurance_cost);
         resultAnnualizedCost = view.findViewById(R.id.result_annualized_cost);
+        resultVerdict = view.findViewById(R.id.result_verdict);
+        chart = view.findViewById(R.id.pp_payoff_chart);
 
         MaterialButton calculateButton = view.findViewById(R.id.btn_calculate);
         calculateButton.setOnClickListener(v -> calculate());
@@ -59,6 +70,8 @@ public class ProtectivePutFragment extends Fragment {
             double strike = parse(inputStrike);
             double premium = parse(inputPremium);
             double days = parse(inputDays);
+            double expectedReturn = parse(inputExpectedReturn);
+            double riskFreeRate = parse(inputRiskFreeRate);
 
             ProtectivePut.Result res = ProtectivePut.compute(costBasis, strike, premium, days);
 
@@ -67,6 +80,16 @@ public class ProtectivePutFragment extends Fragment {
             resultProtectionLevel.setText(getString(R.string.result_protection_level, fmtPct(res.protectionLevelPct)));
             resultInsuranceCost.setText(getString(R.string.result_insurance_cost, fmtPct(res.insuranceCostPct)));
             resultAnnualizedCost.setText(getString(R.string.result_annualized_cost, fmtPct(res.annualizedInsuranceCostPct)));
+
+            List<PayoffEngine.Leg> legs = PayoffEngine.protectivePut(costBasis, strike, premium, 1);
+            PayoffEngine.Result payoff = PayoffEngine.compute(legs, costBasis, 220);
+            List<PayoffEngine.Leg> baseline = PayoffEngine.spotOnly(costBasis, 1);
+            PayoffChartRenderer.render(chart, requireContext(), payoff, baseline, costBasis, costBasis,
+                    getString(R.string.chart_spot_label), getString(R.string.chart_breakeven_label));
+
+            InvestmentVerdict.Result verdict = InvestmentVerdict.forProtectivePut(
+                    res.annualizedInsuranceCostPct, res.protectionLevelPct, expectedReturn, riskFreeRate);
+            resultVerdict.setText(verdict.reasoning);
 
         } catch (NumberFormatException e) {
             Toast.makeText(getContext(), R.string.input_error, Toast.LENGTH_SHORT).show();

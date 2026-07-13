@@ -76,6 +76,34 @@
                 android:text="30" />
         </com.google.android.material.textfield.TextInputLayout>
 
+        <!-- بازده موردانتظار سالانه -->
+        <com.google.android.material.textfield.TextInputLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:hint="@string/label_expected_return">
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/input_expected_return"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="numberDecimal"
+                android:text="25" />
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <!-- نرخ بدون ریسک سالانه -->
+        <com.google.android.material.textfield.TextInputLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:hint="@string/label_risk_free_rate">
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/input_risk_free_rate"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="numberDecimal"
+                android:text="30" />
+        </com.google.android.material.textfield.TextInputLayout>
+
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btn_calculate"
             android:layout_width="match_parent"
@@ -130,6 +158,50 @@
 
             </LinearLayout>
         </androidx.cardview.widget.CardView>
+
+        <!-- نمودار سود/زیان -->
+        <androidx.cardview.widget.CardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            app:cardBackgroundColor="@color/chart_surface"
+            app:cardCornerRadius="16dp"
+            app:cardElevation="0dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="14dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="10dp"
+                    android:text="@string/payoff_chart_title"
+                    android:textColor="@color/chart_text"
+                    android:textSize="14sp"
+                    android:textStyle="bold" />
+
+                <com.github.mikephil.charting.charts.LineChart
+                    android:id="@+id/pp_payoff_chart"
+                    android:layout_width="match_parent"
+                    android:layout_height="260dp" />
+
+            </LinearLayout>
+        </androidx.cardview.widget.CardView>
+
+        <!-- نظر و استدلال سرمایه‌گذاری -->
+        <TextView
+            android:id="@+id/result_verdict"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:padding="14dp"
+            android:background="@drawable/chip_selected_background"
+            android:textColor="@color/blueprint_text"
+            android:textSize="13sp"
+            android:lineSpacingExtra="5dp" />
 
     </LinearLayout>
 </ScrollView>

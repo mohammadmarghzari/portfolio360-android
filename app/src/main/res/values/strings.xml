@@ -20,6 +20,7 @@
     <string name="label_days_to_expiry">روز تا سررسید</string>
     <string name="label_volatility">نوسان ضمنی (٪ سالانه)</string>
     <string name="label_risk_free_rate">نرخ بهره بدون ریسک (٪)</string>
+    <string name="label_expected_return">بازده سالانه موردانتظار (٪)</string>
     <string name="btn_calculate">محاسبه</string>
     <string name="btn_recalculate">به‌روزرسانی</string>
     <string name="results_title">نتایج</string>

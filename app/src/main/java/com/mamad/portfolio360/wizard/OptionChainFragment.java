@@ -120,6 +120,13 @@ public class OptionChainFragment extends Fragment {
     private long selectedExpiry = -1;
     private double spotPrice = Double.NaN;
 
+    /** روزهای باقی‌مانده تا سررسید انتخاب‌شده؛ اگر هنوز مشخص نشده، ۳۰ روز فرض می‌شود. */
+    private double daysToExpiry() {
+        if (selectedExpiry <= 0) return 30.0;
+        double days = (selectedExpiry - System.currentTimeMillis() / 1000.0) / 86400.0;
+        return Math.max(1.0, days);
+    }
+
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
@@ -496,7 +503,7 @@ public class OptionChainFragment extends Fragment {
                 selectForStrategy,
                 call.instrumentName, call.strike, call.markPrice,
                 put.instrumentName, put.strike, put.markPrice,
-                spotPrice);
+                spotPrice, daysToExpiry());
 
         requireActivity().getSupportFragmentManager()
                 .beginTransaction()
@@ -534,7 +541,7 @@ public class OptionChainFragment extends Fragment {
                     selectForStrategy,
                     leg1Instrument, leg1Strike, leg1Premium,
                     c.instrumentName, c.strike, c.markPrice,
-                    spotPrice);
+                    spotPrice, daysToExpiry());
 
             requireActivity().getSupportFragmentManager()
                     .beginTransaction()
@@ -545,7 +552,7 @@ public class OptionChainFragment extends Fragment {
         }
 
         StrategyResultFragment fragment = StrategyResultFragment.newInstance(
-                selectForStrategy, c.instrumentName, c.strike, c.markPrice, spotPrice);
+                selectForStrategy, c.instrumentName, c.strike, c.markPrice, spotPrice, daysToExpiry());
 
         requireActivity().getSupportFragmentManager()
                 .beginTransaction()
