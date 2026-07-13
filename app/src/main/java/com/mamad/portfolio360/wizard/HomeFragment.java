@@ -12,10 +12,11 @@ import androidx.fragment.app.Fragment;
 
 import com.mamad.portfolio360.R;
 import com.mamad.portfolio360.portfolio.PortfolioSetupFragment;
+import com.mamad.portfolio360.premium.PremiumHubFragment;
 
 /**
- * صفحه اصلی اپلیکیشن: انتخاب بین دو بخش مستقل —
- * «تحلیل و استراتژی آپشن» و «بهینه‌سازی پرتفوی».
+ * صفحه اصلی اپلیکیشن: انتخاب بین سه بخش مستقل —
+ * «تحلیل و استراتژی آپشن»، «بهینه‌سازی پرتفوی» و «درآمد از قرارداد آپشن» (اشتراکی).
  */
 public class HomeFragment extends Fragment {
 
@@ -30,6 +31,9 @@ public class HomeFragment extends Fragment {
 
         CardView portfolioCard = view.findViewById(R.id.card_portfolio);
         portfolioCard.setOnClickListener(v -> navigateTo(new PortfolioSetupFragment()));
+
+        CardView premiumCard = view.findViewById(R.id.card_premium);
+        premiumCard.setOnClickListener(v -> navigateTo(new PremiumHubFragment()));
 
         return view;
     }

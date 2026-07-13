@@ -77,6 +77,7 @@
             android:id="@+id/card_portfolio"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_marginBottom="14dp"
             android:clickable="true"
             android:focusable="true"
             app:cardBackgroundColor="@color/home_card_portfolio"
@@ -110,6 +111,68 @@
                     android:layout_marginTop="6dp"
                     android:text="@string/home_portfolio_desc"
                     android:textColor="#E9E4F5"
+                    android:textSize="13sp" />
+            </LinearLayout>
+        </androidx.cardview.widget.CardView>
+
+        <!-- کارت اشتراکی: درآمد از قرارداد آپشن -->
+        <androidx.cardview.widget.CardView
+            android:id="@+id/card_premium"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:clickable="true"
+            android:focusable="true"
+            app:cardBackgroundColor="@color/home_card_premium"
+            app:cardCornerRadius="18dp"
+            app:cardElevation="0dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="20dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical">
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="💎"
+                        android:textSize="26sp" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/sub_badge_popular"
+                        android:background="@drawable/tag_bg_purple"
+                        android:textColor="@color/premium_gold"
+                        android:textSize="10sp"
+                        android:paddingStart="10dp"
+                        android:paddingEnd="10dp"
+                        android:paddingTop="4dp"
+                        android:paddingBottom="4dp" />
+                </LinearLayout>
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    android:text="@string/home_premium_title"
+                    android:textColor="#FFFFFF"
+                    android:textSize="18sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="6dp"
+                    android:text="@string/home_premium_desc"
+                    android:textColor="#F5E9D2"
                     android:textSize="13sp" />
             </LinearLayout>
         </androidx.cardview.widget.CardView>

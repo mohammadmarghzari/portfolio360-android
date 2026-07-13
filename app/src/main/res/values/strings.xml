@@ -145,6 +145,42 @@
     <string name="home_options_desc">Black-Scholes، Greeks، کاوردکال، پروتکتیو پوت و زنجیره آپشن زنده ETH</string>
     <string name="home_portfolio_title">بهینه‌سازی پرتفوی</string>
     <string name="home_portfolio_desc">CVaR، مونت‌کارلو، آزمون استرس و استراتژی بارِبل طالب</string>
+    <string name="home_premium_title">درآمد از قرارداد آپشن</string>
+    <string name="home_premium_desc">کاوردکال، پروتکتیو پوت، لانگ استرنگل و ابزارهای حرفه‌ای پرتفوی — اشتراکی</string>
+
+    <string name="premium_hub_title">درآمد از قرارداد آپشن</string>
+    <string name="premium_hub_subtitle">استراتژی‌های درآمدزا و ابزارهای حرفه‌ای پرتفوی، ویژه اعضای اشتراکی</string>
+    <string name="premium_manage_subscription_button">خرید / تمدید اشتراک</string>
+    <string name="premium_item_covered_call_title">کاوردکال</string>
+    <string name="premium_item_covered_call_desc">درآمد ماهانه از فروش کال روی دارایی نگه‌داشته‌شده</string>
+    <string name="premium_item_protective_put_title">پروتکتیو پوت</string>
+    <string name="premium_item_protective_put_desc">بیمه کردن دارایی در برابر افت شدید قیمت</string>
+    <string name="premium_item_long_strangle_title">لانگ استرنگل</string>
+    <string name="premium_item_long_strangle_desc">سود از نوسان شدید قیمت در هر جهت (زنجیره زنده آپشن)</string>
+    <string name="premium_item_portfolio_title">ابزارهای حرفه‌ای پرتفوی</string>
+    <string name="premium_item_portfolio_desc">پیشنهاد وزن پرتفوی با CVaR، مونت‌کارلو، آزمون استرس و بارِبل طالب</string>
+    <string name="premium_locked_toast">این بخش ویژه اعضای اشتراکی است.</string>
+
+    <string name="sub_title">خرید اشتراک</string>
+    <string name="sub_subtitle">با تهیه اشتراک، به کاوردکال، پروتکتیو پوت، لانگ استرنگل و ابزارهای حرفه‌ای پرتفوی دسترسی کامل داری.</string>
+    <string name="sub_status_active">اشتراک شما فعال است، تا تاریخ %1$s.</string>
+    <string name="sub_status_inactive">در حال حاضر اشتراک فعالی نداری.</string>
+    <string name="sub_plan_1m">۱ ماهه</string>
+    <string name="sub_plan_3m">۳ ماهه</string>
+    <string name="sub_plan_6m">۶ ماهه</string>
+    <string name="sub_plan_1y">۱ ساله</string>
+    <string name="sub_plan_note_monthly">دسترسی کامل به همه بخش‌های اشتراکی</string>
+    <string name="sub_plan_note_yearly">به‌صرفه‌ترین گزینه — کمتر از ۸۴ هزار تومان در ماه</string>
+    <string name="sub_badge_popular">پرطرفدار</string>
+    <string name="sub_badge_best_value">به‌صرفه‌ترین</string>
+    <string name="sub_payment_title">پرداخت و فعال‌سازی</string>
+    <string name="sub_card_number_label">شماره کارت جهت واریز</string>
+    <string name="sub_card_number_value">۵۸۵۹ ۴۷۱۱ ۲۳۰۲ ۹۳۶۹</string>
+    <string name="sub_copy_card">کپی شماره کارت</string>
+    <string name="sub_card_copied">شماره کارت کپی شد</string>
+    <string name="sub_steps">۱. مبلغ پلن موردنظرت رو به شماره کارت بالا واریز کن.\n۲. عکس رسید واریز رو با دکمه زیر برای ما توی تلگرام بفرست (همراه با ایمیل یا شماره‌ای که توی اپ باهاش ثبت‌نام کردی).\n۳. پس از بررسی و تأیید رسید، اشتراکت در همون بازه‌ای که پرداخت کردی فعال می‌شه.</string>
+    <string name="sub_send_receipt_button">ارسال رسید در تلگرام</string>
+    <string name="sub_note">فعال‌سازی اشتراک فعلاً به‌صورت دستی و پس از بررسی رسید انجام می‌شود و معمولاً چند ساعت زمان می‌برد.</string>
 
     <string name="portfolio_setup_title">بهینه‌سازی پرتفوی</string>
     <string name="portfolio_none_selected">هنوز دارایی‌ای انتخاب نشده</string>

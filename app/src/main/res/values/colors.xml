@@ -14,4 +14,6 @@
     <color name="chart_baseline">#64748B</color>
     <color name="home_card_options">#1B3A6B</color>
     <color name="home_card_portfolio">#5B3E9E</color>
+    <color name="home_card_premium">#8A5A12</color>
+    <color name="premium_gold">#F2B33D</color>
 </resources>
