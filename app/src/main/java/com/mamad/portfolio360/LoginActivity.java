@@ -5,24 +5,50 @@ import android.os.Bundle;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.google.android.gms.auth.api.signin.GoogleSignIn;
+import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
+import com.google.android.gms.auth.api.signin.GoogleSignInClient;
+import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
+import com.google.android.gms.common.api.ApiException;
+import com.google.android.gms.tasks.Task;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.textfield.TextInputEditText;
-import com.mamad.portfolio360.auth.UserAccountManager;
+import com.google.firebase.auth.AuthCredential;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseAuthUserCollisionException;
+import com.google.firebase.auth.GoogleAuthProvider;
 
 /**
- * صفحه ورود/ثبت‌نام: فعلاً حساب به‌صورت محلی (روی همین گوشی) با ایمیل و رمز
- * عبور ساخته و بررسی می‌شود. دکمه «ورود با جیمیل» تا راه‌اندازی Firebase غیرفعال است.
+ * صفحه ورود/ثبت‌نام: با ایمیل و رمز عبور یا با جیمیل (Google Sign-In)، هر دو
+ * از طریق Firebase Authentication — یعنی هر جیمیل دقیقاً یک حساب مستقل روی
+ * سرور دارد (نه فقط روی همین گوشی).
  */
 public class LoginActivity extends AppCompatActivity {
 
     private boolean signupMode = true;
+    private FirebaseAuth auth;
+    private GoogleSignInClient googleSignInClient;
+    private ActivityResultLauncher<Intent> googleSignInLauncher;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
+
+        auth = FirebaseAuth.getInstance();
+
+        GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+                .requestIdToken(getString(R.string.default_web_client_id))
+                .requestEmail()
+                .build();
+        googleSignInClient = GoogleSignIn.getClient(this, gso);
+
+        googleSignInLauncher = registerForActivityResult(
+                new ActivityResultContracts.StartActivityForResult(), this::onGoogleSignInResult);
 
         TextView modeTitle = findViewById(R.id.login_mode_title);
         TextView switchMode = findViewById(R.id.login_switch_mode);
@@ -31,11 +57,6 @@ public class LoginActivity extends AppCompatActivity {
         MaterialButton submitButton = findViewById(R.id.btn_login_submit);
         MaterialButton googleButton = findViewById(R.id.btn_google_signin);
 
-        // اگر قبلاً روی این گوشی حساب ساخته شده، پیش‌فرض را روی «ورود» بگذار
-        if (UserAccountManager.currentEmail(this) != null && !UserAccountManager.currentEmail(this).isEmpty()) {
-            signupMode = false;
-            emailInput.setText(UserAccountManager.currentEmail(this));
-        }
         applyMode(modeTitle, switchMode, submitButton);
 
         switchMode.setOnClickListener(v -> {
@@ -47,7 +68,7 @@ public class LoginActivity extends AppCompatActivity {
             String email = emailInput.getText() != null ? emailInput.getText().toString().trim() : "";
             String password = passwordInput.getText() != null ? passwordInput.getText().toString() : "";
 
-            if (!UserAccountManager.isValidEmail(email)) {
+            if (!android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
                 Toast.makeText(this, R.string.login_error_invalid_email, Toast.LENGTH_SHORT).show();
                 return;
             }
@@ -56,26 +77,57 @@ public class LoginActivity extends AppCompatActivity {
                 return;
             }
 
+            submitButton.setEnabled(false);
             if (signupMode) {
-                if (UserAccountManager.accountExists(this, email)) {
-                    Toast.makeText(this, R.string.login_error_account_exists, Toast.LENGTH_SHORT).show();
-                    signupMode = false;
-                    applyMode(modeTitle, switchMode, submitButton);
-                    return;
-                }
-                UserAccountManager.createAccount(this, email, password);
-                goToMain();
+                auth.createUserWithEmailAndPassword(email, password).addOnCompleteListener(task -> {
+                    submitButton.setEnabled(true);
+                    if (task.isSuccessful()) {
+                        goToMain();
+                        return;
+                    }
+                    if (task.getException() instanceof FirebaseAuthUserCollisionException) {
+                        Toast.makeText(this, R.string.login_error_account_exists, Toast.LENGTH_SHORT).show();
+                        signupMode = false;
+                        applyMode(modeTitle, switchMode, submitButton);
+                    } else {
+                        Toast.makeText(this, describeError(task.getException()), Toast.LENGTH_SHORT).show();
+                    }
+                });
             } else {
-                if (UserAccountManager.login(this, email, password)) {
-                    goToMain();
-                } else {
-                    Toast.makeText(this, R.string.login_error_invalid_credentials, Toast.LENGTH_SHORT).show();
-                }
+                auth.signInWithEmailAndPassword(email, password).addOnCompleteListener(task -> {
+                    submitButton.setEnabled(true);
+                    if (task.isSuccessful()) {
+                        goToMain();
+                    } else {
+                        Toast.makeText(this, R.string.login_error_invalid_credentials, Toast.LENGTH_SHORT).show();
+                    }
+                });
             }
         });
 
-        googleButton.setOnClickListener(v ->
-                Toast.makeText(this, R.string.login_google_soon, Toast.LENGTH_SHORT).show());
+        googleButton.setOnClickListener(v -> googleSignInLauncher.launch(googleSignInClient.getSignInIntent()));
+    }
+
+    private void onGoogleSignInResult(androidx.activity.result.ActivityResult result) {
+        Task<GoogleSignInAccount> task = GoogleSignIn.getSignedInAccountFromIntent(result.getData());
+        try {
+            GoogleSignInAccount account = task.getResult(ApiException.class);
+            AuthCredential credential = GoogleAuthProvider.getCredential(account.getIdToken(), null);
+            auth.signInWithCredential(credential).addOnCompleteListener(authTask -> {
+                if (authTask.isSuccessful()) {
+                    goToMain();
+                } else {
+                    Toast.makeText(this, describeError(authTask.getException()), Toast.LENGTH_SHORT).show();
+                }
+            });
+        } catch (ApiException e) {
+            Toast.makeText(this, R.string.login_google_failed, Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    private String describeError(Exception e) {
+        String message = e != null ? e.getLocalizedMessage() : null;
+        return message != null ? message : getString(R.string.login_error_invalid_credentials);
     }
 
     private void applyMode(TextView modeTitle, TextView switchMode, MaterialButton submitButton) {

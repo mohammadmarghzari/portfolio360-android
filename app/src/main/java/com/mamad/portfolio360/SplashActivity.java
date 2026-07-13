@@ -89,8 +89,8 @@ public class SplashActivity extends AppCompatActivity {
             out.setDuration(400);
             out.addListener(new AnimatorListenerAdapter() {
                 @Override public void onAnimationEnd(android.animation.Animator a) {
-                    Class<?> next = com.mamad.portfolio360.auth.UserAccountManager.isLoggedIn(SplashActivity.this)
-                            ? MainActivity.class : LoginActivity.class;
+                    boolean loggedIn = com.google.firebase.auth.FirebaseAuth.getInstance().getCurrentUser() != null;
+                    Class<?> next = loggedIn ? MainActivity.class : LoginActivity.class;
                     startActivity(new Intent(SplashActivity.this, next));
                     overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out);
                     finish();

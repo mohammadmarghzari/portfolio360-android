@@ -1,5 +1,6 @@
 plugins {
     id 'com.android.application'
+    id 'com.google.gms.google-services'
 }
 
 android {
@@ -43,4 +44,10 @@ dependencies {
 
     // نمودار (معادل Plotly برای اندروید)
     implementation 'com.github.PhilJay:MPAndroidChart:v3.1.0'
+
+    // Firebase (ورود با جیمیل و ذخیره وضعیت اشتراک)
+    implementation platform('com.google.firebase:firebase-bom:33.1.2')
+    implementation 'com.google.firebase:firebase-auth'
+    implementation 'com.google.firebase:firebase-firestore'
+    implementation 'com.google.android.gms:play-services-auth:21.2.0'
 }

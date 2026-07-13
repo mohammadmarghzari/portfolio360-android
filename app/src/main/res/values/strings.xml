@@ -195,11 +195,10 @@
     <string name="login_switch_to_login">قبلاً حساب ساختی؟ وارد شو</string>
     <string name="login_switch_to_signup">حساب نداری؟ بساز</string>
     <string name="login_google_button">ورود با جیمیل</string>
-    <string name="login_note">ورود با جیمیل پس از تکمیل راه‌اندازی، فعال می‌شود.</string>
-    <string name="login_google_soon">ورود با جیمیل هنوز فعال نشده — به‌زودی اضافه می‌شود.</string>
+    <string name="login_google_failed">ورود با جیمیل ناموفق بود. دوباره تلاش کن.</string>
     <string name="login_error_invalid_email">یک ایمیل معتبر وارد کن.</string>
     <string name="login_error_short_password">رمز عبور باید حداقل ۶ کاراکتر باشد.</string>
-    <string name="login_error_account_exists">قبلاً با این ایمیل روی این گوشی حساب ساخته شده — وارد شو.</string>
+    <string name="login_error_account_exists">قبلاً با این ایمیل ثبت‌نام شده — وارد شو.</string>
     <string name="login_error_invalid_credentials">ایمیل یا رمز عبور اشتباه است.</string>
 
     <string name="portfolio_setup_title">بهینه‌سازی پرتفوی</string>
