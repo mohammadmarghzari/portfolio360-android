@@ -212,6 +212,19 @@
     <string name="support_feedback_failed">ارسال ناموفق بود — اتصال اینترنتت رو چک کن و دوباره امتحان کن</string>
     <string name="support_youtube_hint">به‌زودی آموزش‌های ویدیویی هم از اینجا در دسترس خواهد بود.</string>
 
+    <string name="admin_menu_title">پنل مدیریت</string>
+    <string name="admin_title">پنل مدیریت</string>
+    <string name="admin_subtitle">فعال‌سازی دستی اشتراک برای یک کاربر، بعد از بررسی رسید پرداخت.</string>
+    <string name="admin_email_label">ایمیل کاربر</string>
+    <string name="admin_email_hint">مثال: user@gmail.com</string>
+    <string name="admin_plan_label">پلن</string>
+    <string name="admin_activate_button">فعال‌سازی اشتراک</string>
+    <string name="admin_email_required">ایمیل کاربر رو وارد کن</string>
+    <string name="admin_user_not_found">این ایمیل پیدا نشد — کاربر باید حداقل یک‌بار وارد اپ شده باشه</string>
+    <string name="admin_activation_success">اشتراک %1$s تا %2$s فعال شد ✅</string>
+    <string name="admin_activation_failed">فعال‌سازی ناموفق بود — دوباره امتحان کن</string>
+    <string name="admin_note">این بخش فقط برای حساب مدیر قابل مشاهده است.</string>
+
     <string name="login_subtitle">برای استفاده از اپ، وارد حساب خودت شو</string>
     <string name="login_title_signup">ساخت حساب کاربری</string>
     <string name="login_title_login">ورود به حساب</string>

@@ -2,11 +2,24 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // هر کاربر فقط می‌تواند وضعیت اشتراک خودش را بخواند؛ نوشتن فقط از طریق
-    // Cloud Function (با Admin SDK، که این قوانین را دور می‌زند) مجاز است.
+    function isAdmin() {
+      return request.auth != null
+          && request.auth.token.email == 'mohammadmarghzari1@gmail.com';
+    }
+
+    // هر کاربر فقط می‌تواند وضعیت اشتراک خودش را بخواند. نوشتن فقط برای ادمین
+    // مجاز است — از داخل پنل مدیریت اپ، یا اسکریپت approve.js با Admin SDK.
     match /subscriptions/{uid} {
-      allow read: if request.auth != null && request.auth.uid == uid;
-      allow write: if false;
+      allow read: if request.auth != null && (request.auth.uid == uid || isAdmin());
+      allow write: if isAdmin();
+    }
+
+    // نگاشت ایمیل به uid؛ هر کاربر فقط رکورد خودش را می‌نویسد، ادمین همه را
+    // می‌تواند بخواند/جستجو کند تا از روی ایمیل، uid کاربر را برای فعال‌سازی پیدا کند.
+    match /users/{uid} {
+      allow read: if request.auth != null && (request.auth.uid == uid || isAdmin());
+      allow list: if isAdmin();
+      allow write: if request.auth != null && request.auth.uid == uid;
     }
 
     // نگاشت چت تلگرام به uid؛ فقط سمت سرور خوانده/نوشته می‌شود.

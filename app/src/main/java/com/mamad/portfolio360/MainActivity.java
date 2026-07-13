@@ -1,12 +1,17 @@
 package com.mamad.portfolio360;
 
 import android.os.Bundle;
+import android.view.Menu;
+import android.view.MenuItem;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.fragment.app.FragmentManager;
 
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
+import com.mamad.portfolio360.admin.AdminAccess;
+import com.mamad.portfolio360.admin.AdminPanelFragment;
+import com.mamad.portfolio360.admin.UserDirectory;
 import com.mamad.portfolio360.premium.SubscriptionManager;
 import com.mamad.portfolio360.support.SupportFragment;
 import com.mamad.portfolio360.wizard.HomeFragment;
@@ -19,6 +24,7 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         SubscriptionManager.refresh(null);
+        UserDirectory.syncCurrentUser();
 
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
@@ -36,6 +42,27 @@ public class MainActivity extends AppCompatActivity {
                 .replace(R.id.fragment_container, new SupportFragment())
                 .addToBackStack(null)
                 .commit());
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        if (AdminAccess.isAdmin()) {
+            getMenuInflater().inflate(R.menu.main_menu, menu);
+        }
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(@androidx.annotation.NonNull MenuItem item) {
+        if (item.getItemId() == R.id.menu_admin_panel) {
+            getSupportFragmentManager()
+                    .beginTransaction()
+                    .replace(R.id.fragment_container, new AdminPanelFragment())
+                    .addToBackStack(null)
+                    .commit();
+            return true;
+        }
+        return super.onOptionsItemSelected(item);
     }
 
     @Override
