@@ -4,7 +4,27 @@
     android:height="108dp"
     android:viewportWidth="108"
     android:viewportHeight="108">
-    <path
-        android:fillColor="#FFFFFF"
-        android:pathData="M30,74 L30,50 L42,50 L42,74 Z M48,74 L48,34 L60,34 L60,74 Z M66,74 L66,58 L78,58 L78,74 Z" />
+
+    <!-- خط‌های سرعت (حرکت) -->
+    <path android:fillColor="#17365C"
+        android:pathData="M25,34 H45 A2,2 0 0 1 45,38 H25 A2,2 0 0 1 25,34 Z" />
+    <path android:fillColor="#17365C"
+        android:pathData="M21,41 H49 A2,2 0 0 1 49,45 H21 A2,2 0 0 1 21,41 Z" />
+
+    <!-- ستون‌های صعودی (نمودار) -->
+    <path android:fillColor="#17365C"
+        android:pathData="M31,58 H40 V78 H31 Z" />
+    <path android:fillColor="#17365C"
+        android:pathData="M43,50 H52 V78 H43 Z" />
+    <path android:fillColor="#F2B33D"
+        android:pathData="M55,42 H64 V78 H55 Z" />
+
+    <!-- حرف P: ساقه -->
+    <path android:fillColor="#17365C"
+        android:pathData="M63,30 H72 V80 H63 Z" />
+
+    <!-- حرف P: کاسه (حلقه سمت راست) -->
+    <path android:fillColor="#17365C"
+        android:pathData="M72,30 A15,14 0 0 1 72,58 L72,51 A8,7 0 0 0 72,37 Z" />
+
 </vector>
