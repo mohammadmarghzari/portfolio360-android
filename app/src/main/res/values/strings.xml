@@ -208,6 +208,8 @@
     <string name="support_title">راهنما و پشتیبانی</string>
     <string name="support_subtitle">جواب سوالات رایج رو اینجا پیدا کن، یا اگه چیزی رو دوست نداشتی برامون بنویس.</string>
     <string name="support_faq_header">سوالات متداول</string>
+    <string name="support_faq_search_hint">جست‌وجو در راهنما… (مثلاً: اشتراک، کاوردکال، حباب)</string>
+    <string name="support_faq_no_results">جوابی برای این جست‌وجو پیدا نشد — سوالت رو از بخش پایین برامون بنویس.</string>
     <string name="support_feedback_header">ارسال انتقاد و پیشنهاد</string>
     <string name="support_feedback_desc">هر انتقاد، پیشنهاد یا مشکلی که با اپ داشتی رو اینجا بنویس — مستقیم برای بررسی برای ما ارسال می‌شه.</string>
     <string name="support_feedback_hint">مثلاً: فلان قسمت اپ کند بود، یا این ویژگی رو اضافه کنید…</string>

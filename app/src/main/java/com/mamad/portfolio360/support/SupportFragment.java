@@ -26,7 +26,16 @@ public class SupportFragment extends Fragment {
                               @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_support, container, false);
 
-        buildFaqList(view);
+        buildFaqList(view, "");
+
+        TextInputEditText searchInput = view.findViewById(R.id.faq_search);
+        searchInput.addTextChangedListener(new android.text.TextWatcher() {
+            @Override public void beforeTextChanged(CharSequence s, int a, int b, int c) {}
+            @Override public void onTextChanged(CharSequence s, int a, int b, int c) {
+                buildFaqList(view, s.toString());
+            }
+            @Override public void afterTextChanged(android.text.Editable s) {}
+        });
 
         TextInputEditText feedbackInput = view.findViewById(R.id.feedback_input);
         MaterialButton sendButton = view.findViewById(R.id.btn_send_feedback);
@@ -63,11 +72,19 @@ public class SupportFragment extends Fragment {
         return view;
     }
 
-    private void buildFaqList(View root) {
+    private void buildFaqList(View root, String query) {
         LinearLayout container = root.findViewById(R.id.faq_container);
+        TextView noResults = root.findViewById(R.id.faq_no_results);
+        container.removeAllViews();
         LayoutInflater inflater = LayoutInflater.from(requireContext());
 
+        int shown = 0;
+        boolean autoExpand = query != null && query.trim().length() >= 2;
+
         for (FaqData.FaqItem item : FaqData.items()) {
+            if (!item.matches(query)) continue;
+            shown++;
+
             View card = inflater.inflate(R.layout.item_faq, container, false);
             TextView questionView = card.findViewById(R.id.faq_question);
             TextView answerView = card.findViewById(R.id.faq_answer);
@@ -77,6 +94,12 @@ public class SupportFragment extends Fragment {
             questionView.setText(item.question);
             answerView.setText(item.answer);
 
+            // هنگام جست‌وجو، جواب‌ها را باز نشان بده تا کاربر سریع‌تر ببیند
+            if (autoExpand) {
+                answerView.setVisibility(View.VISIBLE);
+                toggleIcon.setText("−");
+            }
+
             questionRow.setOnClickListener(v -> {
                 boolean expanded = answerView.getVisibility() == View.VISIBLE;
                 answerView.setVisibility(expanded ? View.GONE : View.VISIBLE);
@@ -85,5 +108,7 @@ public class SupportFragment extends Fragment {
 
             container.addView(card);
         }
+
+        noResults.setVisibility(shown == 0 ? View.VISIBLE : View.GONE);
     }
 }
