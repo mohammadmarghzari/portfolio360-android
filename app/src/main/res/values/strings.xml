@@ -82,8 +82,9 @@
     <string name="chain_loading_greeks">در حال دریافت گریک‌های %1$d قرارداد…</string>
     <string name="chain_empty">قراردادی یافت نشد.</string>
     <string name="chain_error">خطا: %1$s</string>
-    <string name="chain_spot">ETH: %1$s دلار</string>
+    <string name="chain_spot">%1$s: %2$s دلار</string>
     <string name="chain_expiry_label">سررسید: %1$s</string>
+    <string name="chain_basis_label">حباب %1$s (پرمیوم مشتقه): %2$s٪</string>
     <string name="chain_calls">کال (Call)</string>
     <string name="chain_puts">پوت (Put)</string>
     <string name="chain_strike">اعمال</string>

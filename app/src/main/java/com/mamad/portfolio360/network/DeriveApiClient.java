@@ -51,6 +51,74 @@ public class DeriveApiClient {
         void onComplete(String debugSampleJson);
     }
 
+    public interface CurrenciesCallback {
+        void onSuccess(List<String> currencies);
+        void onError(String message);
+    }
+
+    /** قیمت شاخص (اسپات) و قیمت مارک پرپچوال — برای محاسبه‌ی حباب/پرمیوم مشتقه. */
+    public interface PerpQuoteCallback {
+        void onSuccess(double indexPrice, double markPrice);
+        void onError(String message);
+    }
+
+    // ---------- ارزهای دارای قرارداد ----------
+
+    public static void fetchCurrencies(CurrenciesCallback callback) {
+        post(BASE_URL + "get_all_currencies", new JSONObject(), new Callback() {
+            @Override public void onFailure(@NonNull Call call, @NonNull IOException e) {
+                post(() -> callback.onError(e.getMessage()));
+            }
+            @Override public void onResponse(@NonNull Call call, @NonNull Response response) {
+                try {
+                    JSONArray array = readResultArray(response);
+                    List<String> out = new ArrayList<>();
+                    for (int i = 0; i < array.length(); i++) {
+                        Object el = array.get(i);
+                        String c = (el instanceof JSONObject)
+                                ? ((JSONObject) el).optString("currency", "")
+                                : el.toString();
+                        if (!c.isEmpty()) out.add(c.toUpperCase());
+                    }
+                    post(() -> callback.onSuccess(out));
+                } catch (Exception e) {
+                    post(() -> callback.onError(e.getMessage()));
+                } finally {
+                    response.close();
+                }
+            }
+        });
+    }
+
+    // ---------- قیمت پرپچوال (شاخص + مارک) برای حباب ----------
+
+    public static void fetchPerpQuote(String currency, PerpQuoteCallback callback) {
+        JSONObject body = new JSONObject();
+        try {
+            body.put("instrument_name", currency.toUpperCase() + "-PERP");
+        } catch (JSONException e) {
+            post(() -> callback.onError("خطا در ساخت درخواست"));
+            return;
+        }
+        post(BASE_URL + "get_ticker", body, new Callback() {
+            @Override public void onFailure(@NonNull Call call, @NonNull IOException e) {
+                post(() -> callback.onError(e.getMessage()));
+            }
+            @Override public void onResponse(@NonNull Call call, @NonNull Response response) {
+                try {
+                    JSONObject result = readResult(response);
+                    double index = result.getDouble("index_price");
+                    double mark = pick(result, "mark_price", "best_mark_price");
+                    post(() -> callback.onSuccess(index, mark));
+                } catch (Exception e) {
+                    post(() -> callback.onError(e.getMessage()));
+                } finally {
+                    response.close();
+                }
+            }
+        });
+    }
+
     // ---------- قیمت لحظه‌ای ----------
 
     public static void fetchSpotPrice(String currency, PriceCallback callback) {

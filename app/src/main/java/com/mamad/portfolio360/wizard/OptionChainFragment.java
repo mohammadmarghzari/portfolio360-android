@@ -43,9 +43,12 @@ import java.util.TreeSet;
 public class OptionChainFragment extends Fragment {
 
     private static final String ARG_SELECT_FOR = "select_for";
+    private static final String ARG_CURRENCY = "currency";
     private static final String ARG_LEG1_INSTRUMENT = "leg1_instrument";
     private static final String ARG_LEG1_STRIKE = "leg1_strike";
     private static final String ARG_LEG1_PREMIUM = "leg1_premium";
+
+    private static final String[] FALLBACK_CURRENCIES = {"ETH", "BTC"};
 
     // انباشتگر عمومی برای استراتژی‌های سه/چهارپایه (آیرون کاندور، پروانه‌ای)
     private static final String ARG_ACC_INSTRUMENTS = "acc_instruments";
@@ -76,10 +79,11 @@ public class OptionChainFragment extends Fragment {
 
     /** حالت انتخاب پایه دوم، با اطلاعات پایه اول که قبلاً انتخاب شده. */
     public static OptionChainFragment newInstanceForSecondLeg(
-            String strategyKey, String leg1Instrument, double leg1Strike, double leg1Premium) {
+            String strategyKey, String currency, String leg1Instrument, double leg1Strike, double leg1Premium) {
         OptionChainFragment f = new OptionChainFragment();
         Bundle b = new Bundle();
         b.putString(ARG_SELECT_FOR, strategyKey);
+        b.putString(ARG_CURRENCY, currency);
         b.putString(ARG_LEG1_INSTRUMENT, leg1Instrument);
         b.putDouble(ARG_LEG1_STRIKE, leg1Strike);
         b.putDouble(ARG_LEG1_PREMIUM, leg1Premium);
@@ -89,11 +93,12 @@ public class OptionChainFragment extends Fragment {
 
     /** ادامه انتخاب برای استراتژی‌های چندپایه عمومی (آیرون کاندور، پروانه‌ای) */
     public static OptionChainFragment newInstanceForMultiLeg(
-            String strategyKey, ArrayList<String> instruments,
+            String strategyKey, String currency, ArrayList<String> instruments,
             ArrayList<Double> strikes, ArrayList<Double> premiums) {
         OptionChainFragment f = new OptionChainFragment();
         Bundle b = new Bundle();
         b.putString(ARG_SELECT_FOR, strategyKey);
+        b.putString(ARG_CURRENCY, currency);
         b.putStringArrayList(ARG_ACC_INSTRUMENTS, instruments);
         b.putSerializable(ARG_ACC_STRIKES, strikes);
         b.putSerializable(ARG_ACC_PREMIUMS, premiums);
@@ -112,8 +117,12 @@ public class OptionChainFragment extends Fragment {
     private final List<Double> accPremiums = new ArrayList<>();
 
     private TextView status;
+    private TextView basisView;
     private LinearLayout expiryContainer;
     private LinearLayout chainContainer;
+    private LinearLayout currencyContainer;
+
+    private String currency = "ETH";
 
     private final List<OptionContract> allContracts = new ArrayList<>();
     private final List<Long> expiries = new ArrayList<>();
@@ -134,11 +143,14 @@ public class OptionChainFragment extends Fragment {
         View view = inflater.inflate(R.layout.fragment_option_chain, container, false);
 
         status = view.findViewById(R.id.chain_status);
+        basisView = view.findViewById(R.id.chain_basis);
         expiryContainer = view.findViewById(R.id.expiry_container);
         chainContainer = view.findViewById(R.id.chain_container);
+        currencyContainer = view.findViewById(R.id.currency_container);
 
         if (getArguments() != null) {
             selectForStrategy = getArguments().getString(ARG_SELECT_FOR, null);
+            currency = getArguments().getString(ARG_CURRENCY, "ETH");
             if (getArguments().containsKey(ARG_LEG1_INSTRUMENT)) {
                 isSecondLeg = true;
                 leg1Instrument = getArguments().getString(ARG_LEG1_INSTRUMENT, "");
@@ -170,10 +182,87 @@ public class OptionChainFragment extends Fragment {
             hint.setVisibility(View.GONE);
         }
 
+        // انتخاب دارایی فقط روی اولین صفحه فعال است؛ در پایه‌های بعدی ارز ثابت می‌ماند.
+        boolean allowCurrencyChange = !isSecondLeg && accInstruments.isEmpty();
+        if (allowCurrencyChange) {
+            setupCurrencySelector();
+        } else {
+            currencyContainer.setVisibility(View.GONE);
+        }
+
         loadSpot();
         loadChain();
 
         return view;
+    }
+
+    private void setupCurrencySelector() {
+        // ابتدا لیست پیش‌فرض را می‌سازیم تا صفحه بلافاصله قابل‌استفاده باشد،
+        // سپس لیست کامل ارزهای دارای قرارداد را از Derive می‌گیریم.
+        buildCurrencyChips(Arrays.asList(FALLBACK_CURRENCIES));
+        DeriveApiClient.fetchCurrencies(new DeriveApiClient.CurrenciesCallback() {
+            @Override public void onSuccess(List<String> currencies) {
+                if (!isAdded() || currencies.isEmpty()) return;
+                if (!currencies.contains(currency)) currencies.add(0, currency);
+                buildCurrencyChips(currencies);
+            }
+            @Override public void onError(String message) { /* لیست پیش‌فرض کافی است */ }
+        });
+    }
+
+    private void buildCurrencyChips(List<String> currencies) {
+        currencyContainer.removeAllViews();
+        for (String c : currencies) {
+            TextView chip = new TextView(requireContext());
+            chip.setText(c);
+            chip.setTextSize(13f);
+            chip.setPadding(dp(16), dp(7), dp(16), dp(7));
+            boolean selected = c.equalsIgnoreCase(currency);
+            chip.setBackgroundResource(selected
+                    ? R.drawable.chip_selected_background
+                    : R.drawable.chip_unselected_background);
+            chip.setTextColor(getResources().getColor(
+                    selected ? R.color.blueprint_accent : R.color.chart_baseline));
+            chip.setTypeface(chip.getTypeface(), selected ? android.graphics.Typeface.BOLD : android.graphics.Typeface.NORMAL);
+            LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(
+                    ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+            lp.rightMargin = dp(8);
+            chip.setLayoutParams(lp);
+            chip.setOnClickListener(v -> {
+                if (c.equalsIgnoreCase(currency)) return;
+                currency = c.toUpperCase();
+                onCurrencyChanged();
+            });
+            currencyContainer.addView(chip);
+        }
+    }
+
+    private void onCurrencyChanged() {
+        // بازنشانی وضعیت زنجیره و بارگذاری دوباره برای ارز جدید
+        allContracts.clear();
+        expiries.clear();
+        selectedExpiry = -1;
+        spotPrice = Double.NaN;
+        expiryContainer.removeAllViews();
+        chainContainer.removeAllViews();
+        basisView.setVisibility(View.GONE);
+        buildCurrencyChips(currencyChipLabels());
+        loadSpot();
+        loadChain();
+    }
+
+    private List<String> currencyChipLabels() {
+        List<String> labels = new ArrayList<>();
+        for (int i = 0; i < currencyContainer.getChildCount(); i++) {
+            View child = currencyContainer.getChildAt(i);
+            if (child instanceof TextView) labels.add(((TextView) child).getText().toString());
+        }
+        if (labels.isEmpty()) labels.addAll(Arrays.asList(FALLBACK_CURRENCIES));
+        return labels;
+    }
+
+    private int dp(int value) {
+        return Math.round(value * getResources().getDisplayMetrics().density);
     }
 
     private String buildHintText() {
@@ -211,20 +300,34 @@ public class OptionChainFragment extends Fragment {
     }
 
     private void loadSpot() {
-        DeriveApiClient.fetchSpotPrice("ETH", new DeriveApiClient.PriceCallback() {
-            @Override public void onSuccess(double price) {
+        DeriveApiClient.fetchPerpQuote(currency, new DeriveApiClient.PerpQuoteCallback() {
+            @Override public void onSuccess(double indexPrice, double markPrice) {
                 if (!isAdded()) return;
-                spotPrice = price;
+                spotPrice = indexPrice;
                 updateStatus();
+                bindBasis(indexPrice, markPrice);
             }
             @Override public void onError(String message) { /* بی‌صدا */ }
         });
     }
 
+    /** حباب/پرمیوم مشتقه = اختلاف قیمت مارک پرپچوال با قیمت شاخص (اسپات)، به درصد. */
+    private void bindBasis(double indexPrice, double markPrice) {
+        if (Double.isNaN(markPrice) || indexPrice <= 0) {
+            basisView.setVisibility(View.GONE);
+            return;
+        }
+        double basisPct = (markPrice - indexPrice) / indexPrice * 100.0;
+        String sign = basisPct >= 0 ? "+" : "−";
+        basisView.setText(getString(R.string.chain_basis_label, currency, sign + String.format(java.util.Locale.US, "%.2f", Math.abs(basisPct))));
+        basisView.setTextColor(getResources().getColor(basisPct >= 0 ? R.color.chain_call : R.color.chain_put));
+        basisView.setVisibility(View.VISIBLE);
+    }
+
     private void loadChain() {
         status.setText(R.string.chain_loading);
 
-        DeriveApiClient.fetchOptionChain("ETH", new DeriveApiClient.ChainCallback() {
+        DeriveApiClient.fetchOptionChain(currency, new DeriveApiClient.ChainCallback() {
             @Override public void onSuccess(List<OptionContract> contracts) {
                 if (!isAdded()) return;
 
@@ -411,7 +514,7 @@ public class OptionChainFragment extends Fragment {
     private void updateStatus() {
         StringBuilder sb = new StringBuilder();
         if (!Double.isNaN(spotPrice)) {
-            sb.append(getString(R.string.chain_spot, fmt2(spotPrice)));
+            sb.append(getString(R.string.chain_spot, currency, fmt2(spotPrice)));
         }
         if (selectedExpiry > 0) {
             if (sb.length() > 0) sb.append("  •  ");
@@ -466,7 +569,7 @@ public class OptionChainFragment extends Fragment {
 
         if (instruments.size() < plan.size()) {
             OptionChainFragment next = OptionChainFragment.newInstanceForMultiLeg(
-                    selectForStrategy, instruments, strikes, premiums);
+                    selectForStrategy, currency, instruments, strikes, premiums);
 
             requireActivity().getSupportFragmentManager()
                     .beginTransaction()
@@ -526,7 +629,7 @@ public class OptionChainFragment extends Fragment {
 
         if (isTwoLegStrategy() && !isSecondLeg) {
             OptionChainFragment secondLeg = OptionChainFragment.newInstanceForSecondLeg(
-                    selectForStrategy, c.instrumentName, c.strike, c.markPrice);
+                    selectForStrategy, currency, c.instrumentName, c.strike, c.markPrice);
 
             requireActivity().getSupportFragmentManager()
                     .beginTransaction()
