@@ -295,6 +295,22 @@
     <string name="screener_chart_hint">هر منحنی نشون می‌ده ارزش پرمیوم اون قرارداد با گذشت زمان (به‌سمت سررسید) چطور افت می‌کنه — چون فروشنده‌ی کاوردکال از همین افت سود می‌بره، افت سریع‌تر بهتره. محور افقی: روز از امروز.</string>
     <string name="screener_legend_row">%1$d روزه — اعمال %2$s — بازده %3$s</string>
 
+    <string name="premium_item_econ_title">تقویم اقتصادی آمریکا</string>
+    <string name="premium_item_econ_desc">رویدادهای مهم این هفته + تحلیل خودکار تأثیر بر طلا و بیت‌کوین (نیاز به VPN)</string>
+    <string name="econ_title">تقویم اقتصادی آمریکا</string>
+    <string name="econ_subtitle">مهم‌ترین رویدادهای اقتصادی این هفته‌ی آمریکا (سه‌ستاره) که می‌تونن روی طلا، بیت‌کوین و بازارهای مالی نوسان ایجاد کنن. داده‌ها آنلاین دریافت می‌شن — برای دریافت، VPN رو روشن نگه دار.</string>
+    <string name="econ_load">دریافت داده‌های این هفته</string>
+    <string name="econ_actual">واقعی</string>
+    <string name="econ_forecast">انتظار</string>
+    <string name="econ_previous">قبلی</string>
+    <string name="econ_empty">این هفته رویداد مهمی برای آمریکا ثبت نشده.</string>
+    <string name="econ_error">دریافت داده‌ها ناموفق بود. مطمئن شو VPN روشنه و اینترنت وصله، بعد دوباره امتحان کن.</string>
+    <string name="econ_analysis_header">جمع‌بندی کلی: %1$s</string>
+    <string name="econ_lean_hawkish">فضای انقباضی (Hawkish) 🔴</string>
+    <string name="econ_lean_dovish">فضای انبساطی (Dovish) 🟢</string>
+    <string name="econ_lean_mixed">ترکیبی / خنثی ⚪</string>
+    <string name="econ_lean_no_data">در انتظار داده</string>
+
     <string name="login_subtitle">برای استفاده از اپ، وارد حساب خودت شو</string>
     <string name="login_title_signup">ساخت حساب کاربری</string>
     <string name="login_title_login">ورود به حساب</string>
