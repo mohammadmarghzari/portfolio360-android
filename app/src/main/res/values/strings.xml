@@ -339,6 +339,7 @@
     <string name="login_button_login">ورود</string>
     <string name="login_switch_to_login">قبلاً حساب ساختی؟ وارد شو</string>
     <string name="login_switch_to_signup">حساب نداری؟ بساز</string>
+    <string name="login_remember_me">ایمیل و رمز عبورم رو به خاطر بسپار</string>
     <string name="login_google_button">ورود با جیمیل</string>
     <string name="login_google_failed">ورود با جیمیل ناموفق بود. دوباره تلاش کن.</string>
     <string name="login_error_invalid_email">یک ایمیل معتبر وارد کن.</string>

@@ -95,11 +95,21 @@
                         android:gravity="end" />
                 </com.google.android.material.textfield.TextInputLayout>
 
+                <com.google.android.material.checkbox.MaterialCheckBox
+                    android:id="@+id/checkbox_remember"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:checked="true"
+                    android:text="@string/login_remember_me"
+                    android:textColor="@color/chart_text"
+                    android:textSize="13sp" />
+
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/btn_login_submit"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="18dp"
+                    android:layout_marginTop="14dp"
                     android:text="@string/login_button_signup"
                     app:backgroundTint="@color/premium_gold"
                     android:textColor="#1A1200" />
@@ -114,23 +124,6 @@
                     android:text="@string/login_switch_to_login"
                     android:textColor="@color/chart_strategy"
                     android:textSize="12sp" />
-
-                <View
-                    android:layout_width="match_parent"
-                    android:layout_height="1dp"
-                    android:layout_marginTop="10dp"
-                    android:layout_marginBottom="16dp"
-                    android:background="#1E293B" />
-
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/btn_google_signin"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="@string/login_google_button"
-                    android:textSize="13sp"
-                    style="@style/Widget.MaterialComponents.Button.OutlinedButton"
-                    app:strokeColor="@color/chart_baseline"
-                    android:textColor="@color/chart_text" />
 
             </LinearLayout>
         </androidx.cardview.widget.CardView>

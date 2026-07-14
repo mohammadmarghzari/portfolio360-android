@@ -1,38 +1,33 @@
 package com.mamad.portfolio360;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import androidx.activity.result.ActivityResultLauncher;
-import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.google.android.gms.auth.api.signin.GoogleSignIn;
-import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
-import com.google.android.gms.auth.api.signin.GoogleSignInClient;
-import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
-import com.google.android.gms.common.api.ApiException;
-import com.google.android.gms.tasks.Task;
 import com.google.android.material.button.MaterialButton;
+import com.google.android.material.checkbox.MaterialCheckBox;
 import com.google.android.material.textfield.TextInputEditText;
-import com.google.firebase.auth.AuthCredential;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseAuthUserCollisionException;
-import com.google.firebase.auth.GoogleAuthProvider;
 
 /**
- * صفحه ورود/ثبت‌نام: با ایمیل و رمز عبور یا با جیمیل (Google Sign-In)، هر دو
- * از طریق Firebase Authentication — یعنی هر جیمیل دقیقاً یک حساب مستقل روی
- * سرور دارد (نه فقط روی همین گوشی).
+ * صفحه ورود/ثبت‌نام با ایمیل و رمز عبور از طریق Firebase Authentication.
+ * گزینه‌ی «مرا به خاطر بسپار» ایمیل و رمز را به‌صورت محلی ذخیره می‌کند تا
+ * دفعه‌ی بعد نیازی به تایپ دوباره نباشد.
  */
 public class LoginActivity extends AppCompatActivity {
 
+    private static final String PREFS = "login_prefs";
+    private static final String KEY_REMEMBER = "remember";
+    private static final String KEY_EMAIL = "email";
+    private static final String KEY_PASSWORD = "password";
+
     private boolean signupMode = true;
     private FirebaseAuth auth;
-    private GoogleSignInClient googleSignInClient;
-    private ActivityResultLauncher<Intent> googleSignInLauncher;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -41,21 +36,22 @@ public class LoginActivity extends AppCompatActivity {
 
         auth = FirebaseAuth.getInstance();
 
-        GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
-                .requestIdToken(getString(R.string.default_web_client_id))
-                .requestEmail()
-                .build();
-        googleSignInClient = GoogleSignIn.getClient(this, gso);
-
-        googleSignInLauncher = registerForActivityResult(
-                new ActivityResultContracts.StartActivityForResult(), this::onGoogleSignInResult);
-
         TextView modeTitle = findViewById(R.id.login_mode_title);
         TextView switchMode = findViewById(R.id.login_switch_mode);
         TextInputEditText emailInput = findViewById(R.id.input_email);
         TextInputEditText passwordInput = findViewById(R.id.input_password);
         MaterialButton submitButton = findViewById(R.id.btn_login_submit);
-        MaterialButton googleButton = findViewById(R.id.btn_google_signin);
+        MaterialCheckBox rememberBox = findViewById(R.id.checkbox_remember);
+
+        // پیش‌پرکردن از ذخیره‌ی قبلی
+        SharedPreferences prefs = getSharedPreferences(PREFS, MODE_PRIVATE);
+        if (prefs.getBoolean(KEY_REMEMBER, false)) {
+            emailInput.setText(prefs.getString(KEY_EMAIL, ""));
+            passwordInput.setText(prefs.getString(KEY_PASSWORD, ""));
+            rememberBox.setChecked(true);
+            // اگر قبلاً حساب ساخته، پیش‌فرض را روی حالت ورود بگذار
+            signupMode = false;
+        }
 
         applyMode(modeTitle, switchMode, submitButton);
 
@@ -82,6 +78,7 @@ public class LoginActivity extends AppCompatActivity {
                 auth.createUserWithEmailAndPassword(email, password).addOnCompleteListener(task -> {
                     submitButton.setEnabled(true);
                     if (task.isSuccessful()) {
+                        saveCredentials(rememberBox.isChecked(), email, password);
                         goToMain();
                         return;
                     }
@@ -97,6 +94,7 @@ public class LoginActivity extends AppCompatActivity {
                 auth.signInWithEmailAndPassword(email, password).addOnCompleteListener(task -> {
                     submitButton.setEnabled(true);
                     if (task.isSuccessful()) {
+                        saveCredentials(rememberBox.isChecked(), email, password);
                         goToMain();
                     } else {
                         Toast.makeText(this, R.string.login_error_invalid_credentials, Toast.LENGTH_SHORT).show();
@@ -104,27 +102,18 @@ public class LoginActivity extends AppCompatActivity {
                 });
             }
         });
-
-        googleButton.setOnClickListener(v -> googleSignInLauncher.launch(googleSignInClient.getSignInIntent()));
     }
 
-    private void onGoogleSignInResult(androidx.activity.result.ActivityResult result) {
-        Task<GoogleSignInAccount> task = GoogleSignIn.getSignedInAccountFromIntent(result.getData());
-        try {
-            GoogleSignInAccount account = task.getResult(ApiException.class);
-            AuthCredential credential = GoogleAuthProvider.getCredential(account.getIdToken(), null);
-            auth.signInWithCredential(credential).addOnCompleteListener(authTask -> {
-                if (authTask.isSuccessful()) {
-                    goToMain();
-                } else {
-                    Toast.makeText(this, describeError(authTask.getException()), Toast.LENGTH_SHORT).show();
-                }
-            });
-        } catch (ApiException e) {
-            String code = com.google.android.gms.common.api.CommonStatusCodes.getStatusCodeString(e.getStatusCode());
-            Toast.makeText(this, getString(R.string.login_google_failed) + " (" + e.getStatusCode() + " " + code + ")",
-                    Toast.LENGTH_LONG).show();
+    private void saveCredentials(boolean remember, String email, String password) {
+        SharedPreferences.Editor editor = getSharedPreferences(PREFS, MODE_PRIVATE).edit();
+        if (remember) {
+            editor.putBoolean(KEY_REMEMBER, true)
+                    .putString(KEY_EMAIL, email)
+                    .putString(KEY_PASSWORD, password);
+        } else {
+            editor.clear();
         }
+        editor.apply();
     }
 
     private String describeError(Exception e) {
