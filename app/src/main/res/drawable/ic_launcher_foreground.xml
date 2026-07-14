@@ -5,26 +5,26 @@
     android:viewportWidth="108"
     android:viewportHeight="108">
 
-    <!-- خط‌های سرعت (حرکت) -->
-    <path android:fillColor="#17365C"
-        android:pathData="M25,34 H45 A2,2 0 0 1 45,38 H25 A2,2 0 0 1 25,34 Z" />
-    <path android:fillColor="#17365C"
-        android:pathData="M21,41 H49 A2,2 0 0 1 49,45 H21 A2,2 0 0 1 21,41 Z" />
+    <!-- ساقه‌ی P -->
+    <path
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="13"
+        android:strokeLineCap="round"
+        android:fillColor="#00000000"
+        android:pathData="M44,33 L44,82" />
 
-    <!-- ستون‌های صعودی (نمودار) -->
-    <path android:fillColor="#17365C"
-        android:pathData="M31,58 H40 V78 H31 Z" />
-    <path android:fillColor="#17365C"
-        android:pathData="M43,50 H52 V78 H43 Z" />
-    <path android:fillColor="#F2B33D"
-        android:pathData="M55,42 H64 V78 H55 Z" />
+    <!-- کاسه‌ی P -->
+    <path
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="13"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"
+        android:fillColor="#00000000"
+        android:pathData="M44,34 C68,33 70,58 46,57" />
 
-    <!-- حرف P: ساقه -->
-    <path android:fillColor="#17365C"
-        android:pathData="M63,30 H72 V80 H63 Z" />
-
-    <!-- حرف P: کاسه (حلقه سمت راست) -->
-    <path android:fillColor="#17365C"
-        android:pathData="M72,30 A15,14 0 0 1 72,58 L72,51 A8,7 0 0 0 72,37 Z" />
+    <!-- نقطه‌ی طلایی -->
+    <path
+        android:fillColor="#F5B301"
+        android:pathData="M58,60.5 A5.5,5.5 0 1 0 58,71.5 A5.5,5.5 0 1 0 58,60.5 Z" />
 
 </vector>
