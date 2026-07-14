@@ -63,7 +63,7 @@
             android:id="@+id/plan_price"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:textColor="@color/home_card_premium"
+            android:textColor="@color/premium_gold"
             android:textSize="17sp"
             android:textStyle="bold" />
 

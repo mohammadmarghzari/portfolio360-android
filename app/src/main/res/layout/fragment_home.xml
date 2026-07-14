@@ -37,7 +37,7 @@
             android:layout_marginBottom="14dp"
             android:clickable="true"
             android:focusable="true"
-            app:cardBackgroundColor="@color/home_card_options"
+            app:cardBackgroundColor="@android:color/transparent"
             app:cardCornerRadius="18dp"
             app:cardElevation="0dp">
 
@@ -45,6 +45,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
+                android:background="@drawable/bg_home_card_options"
                 android:padding="20dp">
 
                 <TextView
@@ -80,7 +81,7 @@
             android:layout_marginBottom="14dp"
             android:clickable="true"
             android:focusable="true"
-            app:cardBackgroundColor="@color/home_card_portfolio"
+            app:cardBackgroundColor="@android:color/transparent"
             app:cardCornerRadius="18dp"
             app:cardElevation="0dp">
 
@@ -88,6 +89,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
+                android:background="@drawable/bg_home_card_portfolio"
                 android:padding="20dp">
 
                 <LinearLayout
@@ -142,7 +144,7 @@
             android:layout_height="wrap_content"
             android:clickable="true"
             android:focusable="true"
-            app:cardBackgroundColor="@color/home_card_premium"
+            app:cardBackgroundColor="@android:color/transparent"
             app:cardCornerRadius="18dp"
             app:cardElevation="0dp">
 
@@ -150,6 +152,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
+                android:background="@drawable/bg_home_card_premium"
                 android:padding="20dp">
 
                 <LinearLayout

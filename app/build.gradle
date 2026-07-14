@@ -11,8 +11,8 @@ android {
         applicationId "com.mamad.portfolio360"
         minSdk 24
         targetSdk 34
-        versionCode 8
-        versionName "0.8-session8-debug"
+        versionCode 9
+        versionName "0.9-exchange-ui"
     }
 
     buildTypes {

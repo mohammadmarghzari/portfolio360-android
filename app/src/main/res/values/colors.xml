@@ -1,19 +1,21 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="blueprint_bg">#F4F6FB</color>
-    <color name="blueprint_surface">#FFFFFF</color>
-    <color name="blueprint_primary">#1B3A6B</color>
-    <color name="blueprint_accent">#3E7CB1</color>
-    <color name="blueprint_text">#152238</color>
-    <color name="blueprint_grid_line">#D6DEEA</color>
-    <color name="chain_call">#1B7F4C</color>
-    <color name="chain_put">#B03A3A</color>
-    <color name="chart_surface">#0F172A</color>
-    <color name="chart_text">#E2E8F0</color>
+    <!-- پالت حرفه‌ای صرافی: مشکی-سرمه‌ای با تأکید آبی (سبک Deribit) -->
+    <color name="blueprint_bg">#0A0E17</color>
+    <color name="blueprint_surface">#121826</color>
+    <color name="blueprint_surface_alt">#1A2233</color>
+    <color name="blueprint_primary">#4D8DFF</color>
+    <color name="blueprint_accent">#38BDF8</color>
+    <color name="blueprint_text">#E6ECF7</color>
+    <color name="blueprint_grid_line">#212B3E</color>
+    <color name="chain_call">#26D07C</color>
+    <color name="chain_put">#F6465D</color>
+    <color name="chart_surface">#121826</color>
+    <color name="chart_text">#E6ECF7</color>
     <color name="chart_strategy">#38BDF8</color>
-    <color name="chart_baseline">#64748B</color>
-    <color name="home_card_options">#1B3A6B</color>
-    <color name="home_card_portfolio">#5B3E9E</color>
-    <color name="home_card_premium">#8A5A12</color>
-    <color name="premium_gold">#F2B33D</color>
+    <color name="chart_baseline">#7A8AA3</color>
+    <color name="home_card_options">#16305C</color>
+    <color name="home_card_portfolio">#16294F</color>
+    <color name="home_card_premium">#123A4A</color>
+    <color name="premium_gold">#F2C14E</color>
 </resources>

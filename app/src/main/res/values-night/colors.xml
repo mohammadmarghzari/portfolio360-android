@@ -1,13 +1,21 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="blueprint_bg">#0E1420</color>
-    <color name="blueprint_surface">#161F30</color>
-    <color name="blueprint_primary">#5C9BD8</color>
-    <color name="blueprint_accent">#7FB3E0</color>
-    <color name="blueprint_text">#E7ECF5</color>
-    <color name="blueprint_grid_line">#2A3550</color>
-    <color name="chain_call">#4ADE80</color>
-    <color name="chain_put">#F87171</color>
-    <color name="home_card_options">#2E5CA3</color>
-    <color name="home_card_portfolio">#7C5CC9</color>
+    <!-- همان پالت حرفه‌ای؛ اپ همیشه ظاهر تیره‌ی صرافی را نشان می‌دهد -->
+    <color name="blueprint_bg">#0A0E17</color>
+    <color name="blueprint_surface">#121826</color>
+    <color name="blueprint_surface_alt">#1A2233</color>
+    <color name="blueprint_primary">#4D8DFF</color>
+    <color name="blueprint_accent">#38BDF8</color>
+    <color name="blueprint_text">#E6ECF7</color>
+    <color name="blueprint_grid_line">#212B3E</color>
+    <color name="chain_call">#26D07C</color>
+    <color name="chain_put">#F6465D</color>
+    <color name="chart_surface">#121826</color>
+    <color name="chart_text">#E6ECF7</color>
+    <color name="chart_strategy">#38BDF8</color>
+    <color name="chart_baseline">#7A8AA3</color>
+    <color name="home_card_options">#16305C</color>
+    <color name="home_card_portfolio">#16294F</color>
+    <color name="home_card_premium">#123A4A</color>
+    <color name="premium_gold">#F2C14E</color>
 </resources>
