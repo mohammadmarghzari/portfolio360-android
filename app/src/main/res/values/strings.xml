@@ -279,6 +279,22 @@
     <string name="builder_leg_price_hint">قیمت/پرمیوم</string>
     <string name="builder_leg_qty_hint">تعداد</string>
 
+    <string name="premium_item_screener_title">بهینه‌یاب کاوردکال</string>
+    <string name="premium_item_screener_desc">بهترین قرارداد رو برای بازده و بازه‌ی زمانی هدفت پیدا کن</string>
+    <string name="screener_title">بهینه‌یاب کاوردکال</string>
+    <string name="screener_subtitle">بازه‌ی زمانی و بازده هدفت رو بگو تا بین قراردادهای مختلف (۳۰، ۴۵، ۶۰، ۷۵، ۹۰ روزه) بگردم و بهترین قرارداد کال رو برای فروش کاوردکال بهت معرفی کنم — بر اساس فرمول بلک-شولز.</string>
+    <string name="screener_iv_label">نوسان ضمنی سالانه (٪) — اگه نمی‌دونی، همین ۵۰ رو بذار</string>
+    <string name="screener_max_days_label">حداکثر روز تا سررسید</string>
+    <string name="screener_target_label">بازده سالانه هدف (٪)</string>
+    <string name="screener_run">پیدا کن</string>
+    <string name="screener_no_result">قراردادی با این ورودی‌ها پیدا نشد — مقادیر رو بررسی کن.</string>
+    <string name="screener_verdict_met">✅ بهترین قرارداد برای رسیدن به بازده هدف (%1$s سالانه) با کمترین ریسک اعمال:</string>
+    <string name="screener_verdict_not_met">⚠️ با نوسان فعلی، بازده هدف (%1$s) دست‌یافتنی نبود. بهترین گزینه‌ی ممکن (%2$s سالانه):</string>
+    <string name="screener_best_body">• سررسید: %1$d روزه\n• قیمت اعمال: %2$s (%3$s بالاتر از قیمت فعلی)\n• پرمیوم دریافتی: %4$s به ازای هر واحد\n• بازده سالانه‌شده (صرف پرمیوم): %5$s\n• بازده در صورت اعمال: %6$s\n• احتمال تقریبی اعمال: %7$s</string>
+    <string name="screener_chart_title">مقایسه‌ی افت ارزش زمانی</string>
+    <string name="screener_chart_hint">هر منحنی نشون می‌ده ارزش پرمیوم اون قرارداد با گذشت زمان (به‌سمت سررسید) چطور افت می‌کنه — چون فروشنده‌ی کاوردکال از همین افت سود می‌بره، افت سریع‌تر بهتره. محور افقی: روز از امروز.</string>
+    <string name="screener_legend_row">%1$d روزه — اعمال %2$s — بازده %3$s</string>
+
     <string name="login_subtitle">برای استفاده از اپ، وارد حساب خودت شو</string>
     <string name="login_title_signup">ساخت حساب کاربری</string>
     <string name="login_title_login">ورود به حساب</string>

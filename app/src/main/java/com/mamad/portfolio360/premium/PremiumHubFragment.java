@@ -19,6 +19,7 @@ import com.mamad.portfolio360.builder.PayoffBuilderFragment;
 import com.mamad.portfolio360.fragments.CoveredCallFragment;
 import com.mamad.portfolio360.fragments.ProtectivePutFragment;
 import com.mamad.portfolio360.portfolio.PortfolioSetupFragment;
+import com.mamad.portfolio360.screener.CoveredCallScreenerFragment;
 import com.mamad.portfolio360.wizard.OptionChainFragment;
 
 import java.text.SimpleDateFormat;
@@ -107,6 +108,10 @@ public class PremiumHubFragment extends Fragment {
                 getString(R.string.premium_item_builder_title),
                 getString(R.string.premium_item_builder_desc),
                 PayoffBuilderFragment::new));
+        items.add(new Item(
+                getString(R.string.premium_item_screener_title),
+                getString(R.string.premium_item_screener_desc),
+                CoveredCallScreenerFragment::new));
         items.add(new Item(
                 getString(R.string.premium_item_portfolio_title),
                 getString(R.string.premium_item_portfolio_desc),
