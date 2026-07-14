@@ -17,6 +17,7 @@ import com.google.android.material.button.MaterialButton;
 import com.mamad.portfolio360.R;
 import com.mamad.portfolio360.builder.PayoffBuilderFragment;
 import com.mamad.portfolio360.macro.EconCalendarFragment;
+import com.mamad.portfolio360.onchain.OnChainFragment;
 import com.mamad.portfolio360.fragments.CoveredCallFragment;
 import com.mamad.portfolio360.fragments.ProtectivePutFragment;
 import com.mamad.portfolio360.portfolio.PortfolioSetupFragment;
@@ -125,6 +126,10 @@ public class PremiumHubFragment extends Fragment {
                 getString(R.string.premium_item_econ_title),
                 getString(R.string.premium_item_econ_desc),
                 EconCalendarFragment::new, false));
+        items.add(new Item(
+                getString(R.string.premium_item_onchain_title),
+                getString(R.string.premium_item_onchain_desc),
+                OnChainFragment::new, false));
 
         for (Item item : items) {
             View cardView = inflater.inflate(R.layout.item_strategy_card, container, false);

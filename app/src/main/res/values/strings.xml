@@ -311,6 +311,24 @@
     <string name="econ_lean_mixed">ترکیبی / خنثی ⚪</string>
     <string name="econ_lean_no_data">در انتظار داده</string>
 
+    <string name="premium_item_onchain_title">داده‌های آنچین</string>
+    <string name="premium_item_onchain_desc">سنتیمنت بازار مشتقات ETH/BTC با نمودار زنده و تحلیل (نیاز به VPN)</string>
+    <string name="onchain_title">داده‌های آنچین و مشتقات</string>
+    <string name="onchain_subtitle">متریک‌های مهم سنتیمنت بازار برای اتریوم و بیت‌کوین، به‌صورت زنده — هر کدوم با نمودار و یه تحلیل مختصر از وضعیت فعلی.</string>
+    <string name="onchain_asset_eth">اتریوم</string>
+    <string name="onchain_asset_btc">بیت‌کوین</string>
+    <string name="onchain_period_1h">۱ ساعته</string>
+    <string name="onchain_period_4h">۴ ساعته</string>
+    <string name="onchain_period_1d">روزانه</string>
+    <string name="onchain_load">دریافت داده‌های زنده</string>
+    <string name="onchain_vpn_note">داده‌ها آنلاین از بازار فیوچرز دریافت می‌شن — برای دریافت، VPN رو روشن نگه دار.</string>
+    <string name="onchain_metric_taker">نسبت خرید/فروش تیکرها (Taker Buy/Sell)</string>
+    <string name="onchain_metric_ls">نسبت لانگ/شورت حساب‌ها (Long/Short)</string>
+    <string name="onchain_metric_oi">اوپن‌اینترست (Open Interest)</string>
+    <string name="onchain_metric_funding">نرخ فاندینگ (Funding Rate)</string>
+    <string name="onchain_no_data">داده‌ای برای این متریک دریافت نشد.</string>
+    <string name="onchain_error">دریافت ناموفق بود — VPN و اینترنتت رو چک کن.</string>
+
     <string name="login_subtitle">برای استفاده از اپ، وارد حساب خودت شو</string>
     <string name="login_title_signup">ساخت حساب کاربری</string>
     <string name="login_title_login">ورود به حساب</string>
