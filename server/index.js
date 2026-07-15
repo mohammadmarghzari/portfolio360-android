@@ -15,6 +15,8 @@
  *   ADMIN_CHAT_ID             آیدی عددی چت مدیر (از @userinfobot)
  *   FIREBASE_SERVICE_ACCOUNT  کل محتوای فایل service-account به‌صورت JSON یک‌خطی
  */
+require("dotenv").config();
+const fs = require("fs");
 const express = require("express");
 const TelegramBot = require("node-telegram-bot-api");
 const admin = require("firebase-admin");
@@ -27,8 +29,18 @@ if (!BOT_TOKEN || !ADMIN_CHAT_ID || !process.env.FIREBASE_SERVICE_ACCOUNT) {
   process.exit(1);
 }
 
-const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
-admin.initializeApp({ credential: admin.credential.cert(serviceAccount) });
+/**
+ * FIREBASE_SERVICE_ACCOUNT می‌تواند یا کل JSON باشد، یا مسیر یک فایل JSON.
+ * روی سرور اوبونتو، ساده‌ترین راه این است که فایل service-account.json را کنار
+ * برنامه بگذاری و مسیرش را در این متغیر بدهی.
+ */
+function loadServiceAccount() {
+  const v = process.env.FIREBASE_SERVICE_ACCOUNT.trim();
+  if (v.startsWith("{")) return JSON.parse(v);
+  return JSON.parse(fs.readFileSync(v, "utf8"));
+}
+
+admin.initializeApp({ credential: admin.credential.cert(loadServiceAccount()) });
 const db = admin.firestore();
 
 const PLAN_DAYS = { "1m": 30, "3m": 90, "6m": 180, "1y": 365 };
