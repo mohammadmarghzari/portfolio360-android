@@ -35,6 +35,7 @@ public class EconCalendarFragment extends Fragment {
     private View analysisCard;
     private TextView analysisLean, analysisBody;
     private LinearLayout listContainer;
+    private TextView updatedView;
 
     @Nullable
     @Override
@@ -45,12 +46,16 @@ public class EconCalendarFragment extends Fragment {
         loadButton = view.findViewById(R.id.btn_econ_load);
         progress = view.findViewById(R.id.econ_progress);
         message = view.findViewById(R.id.econ_message);
+        updatedView = view.findViewById(R.id.econ_updated);
         analysisCard = view.findViewById(R.id.econ_analysis_card);
         analysisLean = view.findViewById(R.id.econ_analysis_lean);
         analysisBody = view.findViewById(R.id.econ_analysis_body);
         listContainer = view.findViewById(R.id.econ_list_container);
 
         loadButton.setOnClickListener(v -> load());
+
+        // به‌صورت خودکار همان لحظه‌ی باز شدن، داده‌ی زنده را می‌گیرد
+        load();
 
         return view;
     }
@@ -59,10 +64,11 @@ public class EconCalendarFragment extends Fragment {
         listContainer.removeAllViews();
         analysisCard.setVisibility(View.GONE);
         message.setVisibility(View.GONE);
+        updatedView.setVisibility(View.GONE);
         progress.setVisibility(View.VISIBLE);
         loadButton.setEnabled(false);
 
-        EconCalendarClient.fetchThisWeekUsHighImpact(new EconCalendarClient.Callback() {
+        EconCalendarClient.fetchUsHighImpact(new EconCalendarClient.Callback() {
             @Override
             public void onSuccess(List<EconEvent> events) {
                 if (!isAdded()) return;
@@ -76,6 +82,10 @@ public class EconCalendarFragment extends Fragment {
 
                 renderList(events);
                 renderAnalysis(events);
+
+                String now = new SimpleDateFormat("yyyy/MM/dd  HH:mm", Locale.US).format(new Date());
+                updatedView.setText(getString(R.string.econ_updated_at, now));
+                updatedView.setVisibility(View.VISIBLE);
             }
 
             @Override

@@ -33,8 +33,18 @@
             android:id="@+id/btn_econ_load"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="@string/econ_load"
+            android:text="@string/econ_refresh"
             app:backgroundTint="@color/blueprint_primary" />
+
+        <TextView
+            android:id="@+id/econ_updated"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:gravity="center"
+            android:textColor="@color/chain_call"
+            android:textSize="11sp"
+            android:visibility="gone" />
 
         <ProgressBar
             android:id="@+id/econ_progress"

@@ -301,8 +301,10 @@
     <string name="premium_item_econ_title">تقویم اقتصادی آمریکا</string>
     <string name="premium_item_econ_desc">رویدادهای مهم این هفته + تحلیل خودکار تأثیر بر طلا و بیت‌کوین (نیاز به VPN)</string>
     <string name="econ_title">تقویم اقتصادی آمریکا</string>
-    <string name="econ_subtitle">مهم‌ترین رویدادهای اقتصادی این هفته‌ی آمریکا (سه‌ستاره) که می‌تونن روی طلا، بیت‌کوین و بازارهای مالی نوسان ایجاد کنن. داده‌ها آنلاین دریافت می‌شن — برای دریافت، VPN رو روشن نگه دار.</string>
+    <string name="econ_subtitle">مهم‌ترین رویدادهای اقتصادی این هفته و هفته‌ی بعدِ آمریکا (سه‌ستاره) که می‌تونن روی طلا، بیت‌کوین و بازارهای مالی نوسان ایجاد کنن. داده‌ها زنده و آنلاین دریافت می‌شن — برای دریافت، VPN رو روشن نگه دار.</string>
     <string name="econ_load">دریافت داده‌های این هفته</string>
+    <string name="econ_refresh">🔄 به‌روزرسانی داده‌های زنده</string>
+    <string name="econ_updated_at">🟢 زنده — آخرین به‌روزرسانی: %1$s</string>
     <string name="econ_actual">واقعی</string>
     <string name="econ_forecast">انتظار</string>
     <string name="econ_previous">قبلی</string>
