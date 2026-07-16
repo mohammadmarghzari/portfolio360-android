@@ -72,7 +72,12 @@ public class EconCalendarClient {
     private static void fetchOne(String url, RawCallback callback) {
         Request request = new Request.Builder()
                 .url(url)
-                .header("User-Agent", "Mozilla/5.0 (Android) Portfolio360")
+                .header("User-Agent",
+                        "Mozilla/5.0 (Linux; Android 12) AppleWebKit/537.36 (KHTML, like Gecko) "
+                                + "Chrome/120.0.0.0 Mobile Safari/537.36")
+                .header("Accept", "application/json, text/plain, */*")
+                .header("Accept-Language", "en-US,en;q=0.9")
+                .header("Referer", "https://www.forexfactory.com/")
                 .build();
 
         client.newCall(request).enqueue(new okhttp3.Callback() {
