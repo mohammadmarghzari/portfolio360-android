@@ -15,9 +15,31 @@ android {
         versionName "0.9-exchange-ui"
     }
 
+    // امضای نسخه‌ی انتشار (release). کلید و رمز از متغیرهای محیطی خوانده می‌شوند تا
+    // هیچ‌وقت داخل مخزن عمومی قرار نگیرند. اگر کلید موجود نباشد (مثلاً build محلی
+    // بدون رمز)، این بخش نادیده گرفته می‌شود و build خراب نمی‌شود.
+    def releaseStoreFile = System.getenv("RELEASE_STORE_FILE")
+    def releaseStorePassword = System.getenv("RELEASE_KEYSTORE_PASSWORD")
+    def hasReleaseSigning = releaseStoreFile != null && releaseStorePassword != null &&
+            new File(releaseStoreFile).exists()
+
+    signingConfigs {
+        if (hasReleaseSigning) {
+            release {
+                storeFile file(releaseStoreFile)
+                storePassword releaseStorePassword
+                keyAlias "portfolio360"
+                keyPassword releaseStorePassword
+            }
+        }
+    }
+
     buildTypes {
         release {
             minifyEnabled false
+            if (hasReleaseSigning) {
+                signingConfig signingConfigs.release
+            }
         }
     }
 

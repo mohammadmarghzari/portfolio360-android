@@ -9,6 +9,9 @@ jobs:
   build:
     runs-on: ubuntu-latest
 
+    env:
+      HAS_RELEASE_KEYSTORE: ${{ secrets.RELEASE_KEYSTORE_PASSWORD != '' }}
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -35,8 +38,34 @@ jobs:
       - name: Build debug APK
         run: gradle assembleDebug
 
-      - name: Upload APK artifact
+      - name: Upload debug APK artifact
         uses: actions/upload-artifact@v4
         with:
           name: portfolio360-debug-apk
           path: app/build/outputs/apk/debug/app-debug.apk
+
+      # نسخه‌ی release امضاشده — فقط وقتی ساخته می‌شود که کلید امضا در Secrets تنظیم
+      # شده باشد. این همان فایلی است که باید در فروشگاه‌ها (مایکت، بازار و...) آپلود شود.
+      - name: Decrypt release keystore
+        if: env.HAS_RELEASE_KEYSTORE == 'true'
+        env:
+          RELEASE_KEYSTORE_PASSWORD: ${{ secrets.RELEASE_KEYSTORE_PASSWORD }}
+        run: |
+          openssl enc -d -aes-256-cbc -pbkdf2 -iter 200000 \
+            -in app/keystore/portfolio360-release.jks.enc \
+            -out "$RUNNER_TEMP/release.jks" \
+            -pass env:RELEASE_KEYSTORE_PASSWORD
+
+      - name: Build signed release APK
+        if: env.HAS_RELEASE_KEYSTORE == 'true'
+        env:
+          RELEASE_STORE_FILE: ${{ runner.temp }}/release.jks
+          RELEASE_KEYSTORE_PASSWORD: ${{ secrets.RELEASE_KEYSTORE_PASSWORD }}
+        run: gradle assembleRelease
+
+      - name: Upload signed release APK artifact
+        if: env.HAS_RELEASE_KEYSTORE == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: portfolio360-release-apk
+          path: app/build/outputs/apk/release/app-release.apk
