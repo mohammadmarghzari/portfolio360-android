@@ -65,30 +65,6 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="@string/econ_actual"
-                    android:textColor="@color/chart_baseline"
-                    android:textSize="10sp" />
-
-                <TextView
-                    android:id="@+id/econ_actual_value"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="2dp"
-                    android:textDirection="ltr"
-                    android:textColor="@color/chain_call"
-                    android:textSize="14sp"
-                    android:textStyle="bold" />
-            </LinearLayout>
-
-            <LinearLayout
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:orientation="vertical">
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
                     android:text="@string/econ_forecast"
                     android:textColor="@color/chart_baseline"
                     android:textSize="10sp" />
@@ -99,8 +75,9 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="2dp"
                     android:textDirection="ltr"
-                    android:textColor="@color/blueprint_text"
-                    android:textSize="14sp" />
+                    android:textColor="@color/chain_call"
+                    android:textSize="14sp"
+                    android:textStyle="bold" />
             </LinearLayout>
 
             <LinearLayout

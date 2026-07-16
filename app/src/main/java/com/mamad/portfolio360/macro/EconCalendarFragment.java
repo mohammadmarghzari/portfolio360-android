@@ -116,7 +116,6 @@ public class EconCalendarFragment extends Fragment {
             View row = inflater.inflate(R.layout.item_econ_event, listContainer, false);
             ((TextView) row.findViewById(R.id.econ_time)).setText(e.time.isEmpty() ? "—" : e.time);
             ((TextView) row.findViewById(R.id.econ_title)).setText(e.title);
-            ((TextView) row.findViewById(R.id.econ_actual_value)).setText(valueOrDash(e.actual));
             ((TextView) row.findViewById(R.id.econ_forecast_value)).setText(valueOrDash(e.forecast));
             ((TextView) row.findViewById(R.id.econ_previous_value)).setText(valueOrDash(e.previous));
             listContainer.addView(row);
