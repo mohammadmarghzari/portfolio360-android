@@ -149,10 +149,10 @@
     <string name="home_portfolio_title">بهینه‌سازی پرتفوی</string>
     <string name="home_portfolio_desc">CVaR، مونت‌کارلو، آزمون استرس و استراتژی بارِبل طالب</string>
     <string name="home_premium_title">درآمد از قرارداد آپشن</string>
-    <string name="home_premium_desc">کاوردکال، پروتکتیو پوت، لانگ استرنگل و ابزارهای حرفه‌ای پرتفوی — اشتراکی</string>
+    <string name="home_premium_desc">کاوردکال، پروتکتیو پوت، لانگ استرنگل و ابزارهای حرفه‌ای پرتفوی — رایگان</string>
 
     <string name="premium_hub_title">درآمد از قرارداد آپشن</string>
-    <string name="premium_hub_subtitle">استراتژی‌های درآمدزا و ابزارهای حرفه‌ای پرتفوی، ویژه اعضای اشتراکی</string>
+    <string name="premium_hub_subtitle">استراتژی‌های درآمدزا و ابزارهای حرفه‌ای پرتفوی — رایگان و در دسترس همه</string>
     <string name="premium_manage_subscription_button">خرید / تمدید اشتراک</string>
     <string name="premium_item_covered_call_title">کاوردکال</string>
     <string name="premium_item_covered_call_desc">درآمد ماهانه از فروش کال روی دارایی نگه‌داشته‌شده</string>
@@ -208,7 +208,7 @@
     <string name="support_title">راهنما و پشتیبانی</string>
     <string name="support_subtitle">جواب سوالات رایج رو اینجا پیدا کن، یا اگه چیزی رو دوست نداشتی برامون بنویس.</string>
     <string name="support_faq_header">سوالات متداول</string>
-    <string name="support_faq_search_hint">جست‌وجو در راهنما… (مثلاً: اشتراک، کاوردکال، حباب)</string>
+    <string name="support_faq_search_hint">جست‌وجو در راهنما… (مثلاً: پرتفوی، کاوردکال، حباب)</string>
     <string name="support_faq_no_results">جوابی برای این جست‌وجو پیدا نشد — سوالت رو از بخش پایین برامون بنویس.</string>
     <string name="support_feedback_header">ارسال انتقاد و پیشنهاد</string>
     <string name="support_feedback_desc">هر انتقاد، پیشنهاد یا مشکلی که با اپ داشتی رو اینجا بنویس — مستقیم برای بررسی برای ما ارسال می‌شه.</string>

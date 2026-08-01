@@ -4,7 +4,6 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -14,8 +13,6 @@ import androidx.fragment.app.Fragment;
 import com.mamad.portfolio360.R;
 import com.mamad.portfolio360.portfolio.PortfolioSetupFragment;
 import com.mamad.portfolio360.premium.PremiumHubFragment;
-import com.mamad.portfolio360.premium.SubscriptionInfoFragment;
-import com.mamad.portfolio360.premium.SubscriptionManager;
 
 /**
  * صفحه اصلی اپلیکیشن: انتخاب بین سه بخش مستقل —
@@ -33,14 +30,7 @@ public class HomeFragment extends Fragment {
         optionsCard.setOnClickListener(v -> navigateTo(new MarketOutlookFragment()));
 
         CardView portfolioCard = view.findViewById(R.id.card_portfolio);
-        portfolioCard.setOnClickListener(v -> {
-            if (SubscriptionManager.isActive(requireContext())) {
-                navigateTo(new PortfolioSetupFragment());
-            } else {
-                Toast.makeText(getContext(), R.string.premium_locked_toast, Toast.LENGTH_SHORT).show();
-                navigateTo(new SubscriptionInfoFragment());
-            }
-        });
+        portfolioCard.setOnClickListener(v -> navigateTo(new PortfolioSetupFragment()));
 
         CardView premiumCard = view.findViewById(R.id.card_premium);
         premiumCard.setOnClickListener(v -> navigateTo(new PremiumHubFragment()));

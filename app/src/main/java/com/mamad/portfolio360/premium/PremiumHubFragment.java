@@ -6,14 +6,12 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.LinearLayout;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.cardview.widget.CardView;
 import androidx.fragment.app.Fragment;
 
-import com.google.android.material.button.MaterialButton;
 import com.mamad.portfolio360.R;
 import com.mamad.portfolio360.builder.PayoffBuilderFragment;
 import com.mamad.portfolio360.macro.EconCalendarFragment;
@@ -24,11 +22,8 @@ import com.mamad.portfolio360.portfolio.PortfolioSetupFragment;
 import com.mamad.portfolio360.screener.CoveredCallScreenerFragment;
 import com.mamad.portfolio360.wizard.OptionChainFragment;
 
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
-import java.util.Locale;
 
 /**
  * هاب بخش اشتراکی: استراتژی‌های درآمدزای آپشن (کاوردکال، پروتکتیو پوت،
@@ -61,32 +56,9 @@ public class PremiumHubFragment extends Fragment {
                               @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_premium_hub, container, false);
 
-        bindStatusBanner(view);
-        SubscriptionManager.refresh(() -> {
-            if (isAdded()) bindStatusBanner(view);
-        });
-
-        MaterialButton manageBtn = view.findViewById(R.id.btn_manage_subscription);
-        manageBtn.setOnClickListener(v -> navigateTo(new SubscriptionInfoFragment()));
-
         buildItems(view);
 
         return view;
-    }
-
-    private void bindStatusBanner(View view) {
-        TextView banner = view.findViewById(R.id.premium_status_banner);
-        if (SubscriptionManager.isPaidActive()) {
-            String until = new SimpleDateFormat("yyyy/MM/dd", Locale.US)
-                    .format(new Date(SubscriptionManager.expiresAtMillis(requireContext())));
-            banner.setText(getString(R.string.sub_status_active, until));
-        } else if (SubscriptionManager.isInTrial()) {
-            String until = new SimpleDateFormat("yyyy/MM/dd", Locale.US)
-                    .format(new Date(SubscriptionManager.trialEndsAtMillis()));
-            banner.setText(getString(R.string.sub_status_trial, until));
-        } else {
-            banner.setText(getString(R.string.sub_status_inactive));
-        }
     }
 
     private void buildItems(View root) {
@@ -139,14 +111,7 @@ public class PremiumHubFragment extends Fragment {
             ((TextView) card.findViewById(R.id.text_description)).setText(item.descRes);
             card.findViewById(R.id.text_badge).setVisibility(View.GONE);
 
-            card.setOnClickListener(v -> {
-                if (!item.requiresSubscription || SubscriptionManager.isActive(requireContext())) {
-                    navigateTo(item.destination.get());
-                } else {
-                    Toast.makeText(getContext(), R.string.premium_locked_toast, Toast.LENGTH_SHORT).show();
-                    navigateTo(new SubscriptionInfoFragment());
-                }
-            });
+            card.setOnClickListener(v -> navigateTo(item.destination.get()));
 
             container.addView(card);
         }

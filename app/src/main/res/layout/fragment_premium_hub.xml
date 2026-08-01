@@ -24,28 +24,10 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="6dp"
-            android:layout_marginBottom="14dp"
+            android:layout_marginBottom="20dp"
             android:text="@string/premium_hub_subtitle"
             android:textColor="@color/blueprint_text"
             android:textSize="13sp" />
-
-        <TextView
-            android:id="@+id/premium_status_banner"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:padding="12dp"
-            android:layout_marginBottom="16dp"
-            android:background="@drawable/chip_selected_background"
-            android:textColor="@color/blueprint_accent"
-            android:textSize="12sp" />
-
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/btn_manage_subscription"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="20dp"
-            android:text="@string/premium_manage_subscription_button"
-            app:backgroundTint="@color/home_card_premium" />
 
         <LinearLayout
             android:id="@+id/premium_item_container"

@@ -24,12 +24,8 @@ import com.google.android.material.textfield.TextInputEditText;
 import com.google.firebase.auth.FirebaseAuth;
 import com.mamad.portfolio360.LoginActivity;
 import com.mamad.portfolio360.R;
-import com.mamad.portfolio360.premium.SubscriptionManager;
 
 import java.io.InputStream;
-import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.Locale;
 
 /** صفحه‌ی پروفایل کاربر: عکس، نام نمایشی، وضعیت اشتراک و خروج از حساب — همه‌چیز روی سرور ذخیره می‌شود. */
 public class ProfileFragment extends Fragment {
@@ -57,20 +53,8 @@ public class ProfileFragment extends Fragment {
                 ? FirebaseAuth.getInstance().getCurrentUser().getEmail() : null;
         emailView.setText(email != null ? email : "—");
 
-        SubscriptionManager.refresh(() -> {
-            if (!isAdded()) return;
-            if (SubscriptionManager.isPaidActive()) {
-                String until = new SimpleDateFormat("yyyy/MM/dd", Locale.US)
-                        .format(new Date(SubscriptionManager.expiresAtMillis(requireContext())));
-                statusView.setText(getString(R.string.sub_status_active, until));
-            } else if (SubscriptionManager.isInTrial()) {
-                String until = new SimpleDateFormat("yyyy/MM/dd", Locale.US)
-                        .format(new Date(SubscriptionManager.trialEndsAtMillis()));
-                statusView.setText(getString(R.string.sub_status_trial, until));
-            } else {
-                statusView.setText(getString(R.string.sub_status_inactive));
-            }
-        });
+        // همه‌ی امکانات رایگان است؛ دیگر وضعیت اشتراکی برای نمایش وجود ندارد.
+        statusView.setVisibility(View.GONE);
 
         UserProfileStore.load(new UserProfileStore.LoadCallback() {
             @Override

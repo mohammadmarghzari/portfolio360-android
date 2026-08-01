@@ -23,9 +23,12 @@ public class SubscriptionManager {
     private static volatile long cachedExpiresAt = 0L;
     private static volatile String lastError = null;
 
-    /** true اگر اشتراک پولی فعال باشد یا هنوز داخل ۱۰ روز آزمایشی رایگان باشیم. */
+    /**
+     * همه‌ی قابلیت‌های اپ برای عموم رایگان و باز است؛ هیچ اشتراکی لازم نیست.
+     * این متد برای سازگاری با کدهای قدیمی نگه داشته شده و همیشه true برمی‌گرداند.
+     */
     public static boolean isActive(Context context) {
-        return isPaidActive() || isInTrial();
+        return true;
     }
 
     /** true فقط وقتی اشتراک پولی واقعی (نه دوره آزمایشی) فعال باشد. */
