@@ -11,8 +11,8 @@ android {
         applicationId "com.mamad.portfolio360"
         minSdk 24
         targetSdk 34
-        versionCode 9
-        versionName "0.9-exchange-ui"
+        versionCode 10
+        versionName "1.0-free"
     }
 
     // امضای نسخه‌ی انتشار (release). کلید و رمز از متغیرهای محیطی خوانده می‌شوند تا
