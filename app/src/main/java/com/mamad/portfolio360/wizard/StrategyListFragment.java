@@ -53,13 +53,9 @@ public class StrategyListFragment extends Fragment {
             title.setText(option.title);
             description.setText(option.description);
 
-            boolean locked = option.requiresSubscription && !SubscriptionManager.isActive(requireContext());
             if (!option.implemented) {
                 badge.setVisibility(View.VISIBLE);
                 badge.setText(R.string.strategy_coming_soon);
-            } else if (locked) {
-                badge.setVisibility(View.VISIBLE);
-                badge.setText(R.string.premium_locked_badge);
             } else {
                 badge.setVisibility(View.GONE);
             }
